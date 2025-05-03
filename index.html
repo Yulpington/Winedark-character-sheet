@@ -53,6 +53,8 @@
              border: 1px solid #4b5563;
              padding: 0.3rem 0.6rem; /* Adjust padding */
              font-size: 0.9rem;
+             border-radius: 4px; /* Added rounded corners */
+             transition: background-color 0.2s; /* Added transition */
         }
          #sheet-actions-container .action-btn:hover {
              background-color: #4b5563; /* Darker gray on hover */
@@ -401,7 +403,7 @@
         /* Hit Location Specific Styling */
         .hit-location-content {
             position: relative; width: 100%; aspect-ratio: 1 / 1; /* Maintain square aspect ratio */
-            background-image: url('https://iili.io/3w2E1Uu.png'); /* Silhouette image */
+            background-image: url('https://placehold.co/400x400/dddddd/333333?text=Silhouette'); /* Placeholder Silhouette image */
             background-color: #ddd; /* Fallback color */
             background-size: contain; background-repeat: no-repeat; background-position: center;
             overflow: hidden; border-radius: 4px;
@@ -573,6 +575,7 @@
                         🎨
                         <input type="color" class="color-picker-input" onchange="changeSectionColor(this)">
                     </button>
+                    <button class="delete-section-btn" onclick="removeFullSection(this)" title="Delete Section">X</button>
                  </div>
             </div>
             <div class="section-content">
@@ -658,6 +661,7 @@
                         🎨
                         <input type="color" class="color-picker-input" onchange="changeSectionColor(this)">
                     </button>
+                    <button class="delete-section-btn" onclick="removeFullSection(this)" title="Delete Section">X</button>
                  </div>
              </div>
             <div class="section-content text-sm">
@@ -694,6 +698,7 @@
                         🎨
                         <input type="color" class="color-picker-input" onchange="changeSectionColor(this)">
                     </button>
+                    <button class="delete-section-btn" onclick="removeFullSection(this)" title="Delete Section">X</button>
                  </div>
              </div>
             <div class="section-content">
@@ -731,6 +736,7 @@
                         🎨
                         <input type="color" class="color-picker-input" onchange="changeSectionColor(this)">
                     </button>
+                    <button class="delete-section-btn" onclick="removeFullSection(this)" title="Delete Section">X</button>
                 </div>
             </div>
             <div class="section-content description-fields-grid">
@@ -755,6 +761,7 @@
                         🎨
                         <input type="color" class="color-picker-input" onchange="changeSectionColor(this)">
                     </button>
+                    <button class="delete-section-btn" onclick="removeFullSection(this)" title="Delete Section">X</button>
                  </div>
             </div>
              <div id="powers-container" class="section-content">
@@ -774,10 +781,12 @@
                         🎨
                         <input type="color" class="color-picker-input" onchange="changeSectionColor(this)">
                     </button>
+                    <button class="delete-section-btn" onclick="removeFullSection(this)" title="Delete Section">X</button>
                  </div>
             </div>
              <div id="notes-container" class="section-content">
-                 <textarea id="notes-text" placeholder="General notes..." class="h-full auto-expand"></textarea> </div>
+                 <textarea id="notes-text" placeholder="General notes..." class="h-full auto-expand"></textarea>
+             </div>
          </div>
 
     </div> <div id="dice-result-popup" onclick="this.style.display='none'"></div>
@@ -799,7 +808,6 @@
         const inventorySlotTemplate = `<div class="dynamic-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Slot">-</button><input type="text" placeholder="Item Slot" class="flex-grow"></div>`;
 
         // --- Default Sheet Structure (for Reset) ---
-        // *** UPDATED: Added Smithing to default Craft/Art ***
         const defaultSheetStructure = {
             skills: {
                 core: [
@@ -822,7 +830,8 @@
                     { baseSkill: "Sport", basePercent: 0 }
                 ],
                 craftArt: [
-                    { name: "Smithing", basePercent: 0, rank: "0" } // Added Smithing
+                    // Default craft/art skills can be added here if desired, e.g.:
+                    // { name: "Smithing", basePercent: 0, rank: "0" }
                 ]
             },
             combat: {
@@ -948,17 +957,19 @@
                         const isCustom = !!data.name && !isPredefined; // Custom has name but no baseSkill
                         const isCraftArt = containerId === 'craft-art-container';
 
-                        // *** UPDATED: Logic for handling Craft/Art name loading ***
-                        if (isCraftArt && nameInput && nameSpan) {
+                        // --- FIX START: Corrected logic for loading Craft/Art ---
+                        if (isCraftArt && nameInput) { // Check only for nameInput for Craft/Art
                              // Craft/Art always uses input, load name from data.name
                              nameInput.value = data.name || ''; // Use saved name
                              nameInput.dataset.baseSkill = data.name || ''; // Also store in dataset for consistency
                              if (data.basePercent !== undefined) nameInput.dataset.basePercent = data.basePercent;
-                             nameInput.style.display = ''; // Show input
-                             nameSpan.style.display = 'none'; // Hide span
+                             nameInput.style.display = ''; // Ensure input is shown
+                             if (nameSpan) nameSpan.style.display = 'none'; // Hide span if it somehow exists (template doesn't have it)
                         }
+                        // --- FIX END ---
                         else if (isPredefined && nameSpan && nameInput) {
                             // Populate predefined skill (using span, hide input)
+                            nameSpan.textContent = data.baseSkill; // Set initial text
                             nameSpan.dataset.baseSkill = data.baseSkill;
                             if (data.basePercent !== undefined) nameSpan.dataset.basePercent = data.basePercent;
                             if (data.attribute) nameSpan.dataset.attribute = data.attribute;
@@ -972,7 +983,15 @@
                             if (data.basePercent !== undefined) nameInput.dataset.basePercent = data.basePercent;
                             nameInput.style.display = ''; // Show input
                             nameSpan.style.display = 'none'; // Hide span
-                        } else {
+                        } else if (isCustom && nameInput && !nameSpan && !isCraftArt) {
+                            // Handle case where a custom skill was added but the span might be missing (fallback)
+                            console.warn("Loading custom skill without a span element for:", data.name);
+                            nameInput.value = data.name;
+                            nameInput.dataset.baseSkill = data.name;
+                            if (data.basePercent !== undefined) nameInput.dataset.basePercent = data.basePercent;
+                            nameInput.style.display = '';
+                        }
+                        else {
                             console.warn("Could not determine skill type or find elements for skill entry:", data, "in container:", containerId);
                         }
 
@@ -1017,13 +1036,13 @@
                      const nameInput = newEntry.querySelector('.skill-name-input');
                      const isCraftArt = containerId === 'craft-art-container';
 
-                     if (nameSpan && nameInput) {
+                     if (nameInput) { // Only need nameInput for this logic
                          if (isCraftArt) {
-                             nameSpan.style.display = 'none'; // Hide span for new craft/art
+                             if (nameSpan) nameSpan.style.display = 'none'; // Hide span if it exists
                              nameInput.style.display = ''; // Show input for new craft/art
                              nameInput.focus(); // Focus the input for easy typing
                          } else {
-                             nameSpan.style.display = 'none'; // Hide span for new core/knowledge/combat
+                             if (nameSpan) nameSpan.style.display = 'none'; // Hide span for new core/knowledge/combat
                              nameInput.style.display = ''; // Show input
                              nameInput.focus();
                          }
@@ -1593,7 +1612,7 @@
             const nameSpan = entry.querySelector('.skill-name-display');
             const nameInput = entry.querySelector('.skill-name-input');
             const percentDisplay = entry.querySelector('.skill-percent-display');
-            // Choose the correct element for skill details based on visibility
+            // Choose the correct element for skill details based on visibility or existence
             const detailSourceElement = (nameSpan && nameSpan.style.display !== 'none') ? nameSpan : nameInput;
 
             // Ensure we have a source for details and a display element
@@ -1714,7 +1733,7 @@
                 const rankInput = entry.querySelector('.skill-rank-input');
                 const nameSpan = entry.querySelector('.skill-name-display');
                 const nameInput = entry.querySelector('.skill-name-input');
-                // Choose the correct element for skill details based on visibility
+                // Choose the correct element for skill details based on visibility or existence
                 const detailSourceElement = (nameSpan && nameSpan.style.display !== 'none') ? nameSpan : nameInput;
 
                 // Add checks for all necessary elements
@@ -1922,7 +1941,7 @@
                      const skillData = {
                          rank: rankInput.value || '0',
                          name: nameInput.value || '', // Explicitly save the input value as name
-                         basePercent: nameInput.dataset.basePercent || '0',
+                         basePercent: nameInput.dataset.basePercent || '0', // Save basePercent from input dataset
                      };
                       Object.keys(skillData).forEach(key => skillData[key] === undefined && delete skillData[key]);
                      data.skills.craftArt.push(skillData);
@@ -2169,7 +2188,7 @@
             if (data.skills) {
                 data.skills.core?.forEach(skillData => addEntry('skills-container', skillTemplate, skillData));
                 data.skills.knowledge?.forEach(skillData => addEntry('knowledge-container', knowledgeTemplate, skillData));
-                // *** UPDATED: Craft/Art loading relies on addEntry correctly handling data.name ***
+                // *** Craft/Art loading relies on addEntry correctly handling data.name ***
                 data.skills.craftArt?.forEach(skillData => addEntry('craft-art-container', craftArtTemplate, skillData));
             }
 
@@ -2323,7 +2342,6 @@
 
 
             // --- Populate Default Skills (Core, Knowledge, Combat, Craft/Art) ---
-            // *** UPDATED: Add default Craft/Art skills on reset ***
             if (updateCalculations) { // Only add defaults if we are doing a full reset (not just clearing for load)
                 defaultSheetStructure.skills.core.forEach(skillDef => addEntry('skills-container', skillTemplate, { ...skillDef, rank: '0' }));
                 defaultSheetStructure.skills.knowledge.forEach(skillDef => addEntry('knowledge-container', knowledgeTemplate, { ...skillDef, rank: '0' }));
@@ -2412,10 +2430,10 @@
                         autoExpandTextarea(event.target);
                     }
                 });
-                 // Listen for changes specifically on color pickers
+                 // Listen for changes specifically on color pickers and select dropdowns
                  sheetContainer.addEventListener('change', (event) => {
-                     if (event.target.type === 'color') {
-                        // console.log('Change event triggered save for color picker'); // DEBUGGING
+                     if (event.target.type === 'color' || event.target.tagName === 'SELECT') {
+                        // console.log('Change event triggered save for:', event.target.id || event.target.tagName); // DEBUGGING
                          debouncedSave();
                      }
                  });
@@ -2439,4 +2457,4 @@
 
 </body>
 </html>
-" from the immersive artifact with id "index.ht
+
