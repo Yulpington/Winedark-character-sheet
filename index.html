@@ -649,10 +649,17 @@
                  </div>
              </div>
             <div class="section-content">
-                <div class="sub-section mb-4 border-b pb-4"> <h4 class="font-semibold mb-1 text-sm">Backpack (5 slots)</h4> <input type="text" placeholder="Slot 1"> <input type="text" placeholder="Slot 2"> <input type="text" placeholder="Slot 3"> <input type="text" placeholder="Slot 4"> <input type="text" placeholder="Slot 5"> </div>
+                <div class="sub-section mb-4 border-b pb-4">
+                    <h4 class="font-semibold mb-1 text-sm">Backpack (5 slots)</h4>
+                    <input type="text" id="backpack-slot-1" placeholder="Slot 1">
+                    <input type="text" id="backpack-slot-2" placeholder="Slot 2">
+                    <input type="text" id="backpack-slot-3" placeholder="Slot 3">
+                    <input type="text" id="backpack-slot-4" placeholder="Slot 4">
+                    <input type="text" id="backpack-slot-5" placeholder="Slot 5">
+                </div>
                 <div class="sub-section mb-4 border-b pb-4">
                     <h4 class="font-semibold mb-1 text-sm">Satchel</h4>
-                    <textarea placeholder="List satchel items..."></textarea>
+                    <textarea id="satchel-items" placeholder="List satchel items..." class="auto-expand"></textarea>
                     <label for="coin" class="mt-2">Coin:</label>
                     <input type="number" id="coin" value="10">
                      <div class="text-center mt-4">
@@ -680,10 +687,10 @@
             </div>
             <div class="section-content description-fields-grid">
                  <div>
-                     <textarea id="char-desc" placeholder="Enter character description, goals..." class="h-full"></textarea>
+                     <textarea id="char-desc" placeholder="Enter character description, goals..." class="h-full auto-expand"></textarea>
                  </div>
                  <div>
-                     <textarea id="char-flaws" placeholder="Enter descriptions of your character's vices, fears, and misfortunes. Describe how they affect your character." class="h-full"></textarea>
+                     <textarea id="char-flaws" placeholder="Enter descriptions of your character's vices, fears, and misfortunes. Describe how they affect your character." class="h-full auto-expand"></textarea>
                  </div>
             </div>
         </div>
@@ -722,8 +729,7 @@
                  </div>
             </div>
              <div id="notes-container" class="section-content">
-                 <textarea placeholder="General notes..." class="h-full"></textarea>
-             </div>
+                 <textarea id="notes-text" placeholder="General notes..." class="h-full auto-expand"></textarea> </div>
          </div>
 
     </div> <div id="dice-result-popup" onclick="this.style.display='none'"></div>
@@ -740,7 +746,8 @@
         const craftArtTemplate = `<div class="dynamic-entry skill-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Craft/Art">-</button><input type="text" placeholder="Craft/Art Name" class="skill-name-input flex-grow" data-base-skill="" data-base-percent="0" oninput="updateDynamicSkillLabel(this)"><input type="number" value="0" class="skill-rank-input" oninput="updateSkillPercentage(this)"><input type="number" value="0" class="skill-percent-display percent-display" readonly><button class="dice-roller-btn" onclick="rollPercentile(this)">🎲</button></div>`; // Craft/Art always uses input
         const combatStatTemplate = `<div class="dynamic-entry skill-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Stat">-</button><span class="skill-name-display" data-base-skill="" data-base-percent="0">Combat Stat</span><input type="text" placeholder="Combat Stat Name" class="skill-name-input flex-grow" style="display:none;" oninput="updateDynamicSkillLabel(this)"><input type="number" value="0" class="skill-rank-input" oninput="updateSkillPercentage(this)"><input type="number" value="0" class="skill-percent-display percent-display" readonly><button class="dice-roller-btn" onclick="rollPercentile(this)">🎲</button></div>`;
         const meleeWeaponTemplate = `<div class="dynamic-entry weapon-entry" data-weapon-type="melee"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Weapon">-</button><textarea placeholder="Weapon Name" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><input type="number" value="0" class="text-center skill-percent-input" oninput="updateXpSpent()"><input type="text" placeholder="e.g. 1d4" class="dmg-input"><span class="str-dmg-mod">(+0)</span><textarea placeholder="Notes" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><button class="dice-roller-btn" onclick="rollWeaponAttack(this)">🎲</button></div>`;
-        const rangedWeaponTemplate = `<div class="dynamic-entry weapon-entry" data-weapon-type="ranged"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Weapon">-</button><textarea placeholder="Weapon Name" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><input type="number" value="0" class="text-center skill-percent-input" oninput="updateXpSpent()"><input type="number" value="0" placeholder="e.g. 1d6" class="dmg-input"><span class="str-dmg-mod">(+0)</span><textarea placeholder="Notes" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><button class="dice-roller-btn" onclick="rollWeaponAttack(this)">🎲</button></div>`;
+        // *** FIXED: Changed ranged weapon damage input to type="text" ***
+        const rangedWeaponTemplate = `<div class="dynamic-entry weapon-entry" data-weapon-type="ranged"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Weapon">-</button><textarea placeholder="Weapon Name" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><input type="number" value="0" class="text-center skill-percent-input" oninput="updateXpSpent()"><input type="text" placeholder="e.g. 1d6" class="dmg-input"><span class="str-dmg-mod">(+0)</span><textarea placeholder="Notes" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><button class="dice-roller-btn" onclick="rollWeaponAttack(this)">🎲</button></div>`;
         const powerTemplate = `<div class="dynamic-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Power/Note">-</button><input type="text" placeholder="Power or Note" class="flex-grow"></div>`;
         const inventorySlotTemplate = `<div class="dynamic-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Slot">-</button><input type="text" placeholder="Item Slot" class="flex-grow"></div>`;
 
@@ -1873,7 +1880,7 @@
                  data.combat.rangedWeapons.push({
                      name: entry.querySelector('textarea[placeholder="Weapon Name"]')?.value || '',
                      percent: entry.querySelector('.skill-percent-input')?.value || '0',
-                     damage: entry.querySelector('.dmg-input')?.value || '',
+                     damage: entry.querySelector('.dmg-input')?.value || '', // Damage is now text
                      notes: entry.querySelector('textarea[placeholder="Notes"]')?.value || ''
                  });
             });
@@ -1892,12 +1899,16 @@
             });
 
             // --- Inventory ---
+            // *** FIXED: Added saving for backpack slots and satchel ***
             data.inventory = { backpack: [], satchel: '', coin: '0', dynamic: [] };
-            document.querySelectorAll('#inventory .sub-section:first-of-type input[placeholder^="Slot"]').forEach(input => {
-                data.inventory.backpack.push(input.value || '');
-            });
-            data.inventory.satchel = getTextAreaVal('#inventory textarea[placeholder="List satchel items..."]');
+            // Save backpack slots using their IDs
+            for (let i = 1; i <= 5; i++) {
+                data.inventory.backpack.push(getVal(`backpack-slot-${i}`));
+            }
+            // Save satchel content using its ID
+            data.inventory.satchel = getTextAreaVal('#satchel-items');
             data.inventory.coin = getVal('coin') || '0';
+            // Save dynamic inventory sections
             document.querySelectorAll('#dynamic-inventory-container .dynamic-inventory-section').forEach(section => {
                 const header = section.querySelector('.section-header');
                 const dynamicSectionData = {
@@ -1918,7 +1929,8 @@
              });
 
             // --- Notes ---
-            data.notes = getTextAreaVal('#notes-container textarea');
+            // *** FIXED: Use ID to get notes textarea value ***
+            data.notes = getTextAreaVal('#notes-text');
 
             // --- Section Customizations (Title & Color) ---
              data.sectionCustomizations = {};
@@ -2104,14 +2116,14 @@
             }
 
             // --- Populate Inventory ---
+            // *** FIXED: Added loading for backpack slots and satchel ***
             if (data.inventory) {
-                // Backpack (Update existing inputs)
-                const backpackInputs = document.querySelectorAll('#inventory .sub-section:first-of-type input[placeholder^="Slot"]');
+                // Backpack (Update existing inputs using their IDs)
                 data.inventory.backpack?.forEach((item, index) => {
-                    if (backpackInputs[index]) backpackInputs[index].value = item || '';
+                    setVal(`backpack-slot-${index + 1}`, item || ''); // index is 0-based, IDs are 1-based
                 });
-                // Satchel & Coin
-                setTextAreaVal('#inventory textarea[placeholder="List satchel items..."]', data.inventory.satchel);
+                // Satchel & Coin (Update using IDs)
+                setTextAreaVal('#satchel-items', data.inventory.satchel);
                 setVal('coin', data.inventory.coin || '0');
                 // Dynamic Containers (Rebuild from saved data)
                 data.inventory.dynamic?.forEach(sectionData => addInventorySection(sectionData));
@@ -2121,7 +2133,8 @@
             data.powers?.forEach(powerData => addEntry('powers-container', powerTemplate, powerData));
 
             // --- Populate Notes ---
-            setTextAreaVal('#notes-container textarea', data.notes);
+            // *** FIXED: Use ID to set notes textarea value ***
+            setTextAreaVal('#notes-text', data.notes);
 
             // --- Populate Section Customizations (Titles & Colors) ---
             if (data.sectionCustomizations) {
@@ -2209,7 +2222,8 @@
             });
 
             // --- Reset Description & Flaws & Notes ---
-            const textAreasToReset = ['#char-desc', '#char-flaws', '#notes-container textarea'];
+            // *** FIXED: Added #notes-text to reset ***
+            const textAreasToReset = ['#char-desc', '#char-flaws', '#notes-text', '#satchel-items'];
             textAreasToReset.forEach(selector => {
                  const el = document.querySelector(selector);
                  if (el) {
@@ -2219,13 +2233,12 @@
             });
 
             // --- Reset Static Inventory (Backpack/Satchel) ---
-             const backpackSlots = document.querySelectorAll('#inventory .sub-section:first-of-type input[placeholder^="Slot"]');
-             backpackSlots.forEach(input => { if (input) input.value = ''; });
-             const satchel = document.querySelector('#inventory textarea[placeholder="List satchel items..."]');
-             if (satchel) {
-                 satchel.value = '';
-                 autoExpandTextarea(satchel); // Reset height
+            // *** FIXED: Reset backpack slots using IDs ***
+             for (let i = 1; i <= 5; i++) {
+                const slot = document.getElementById(`backpack-slot-${i}`);
+                if (slot) slot.value = '';
              }
+             // Satchel reset is handled above with other textareas
 
 
             // --- Populate Default Skills (Core, Knowledge, Combat) ---
@@ -2266,7 +2279,16 @@
                  if (titleInput && defaultTitle) titleInput.value = defaultTitle; // Reset hidden input too
                  // Reset color
                  if (header) header.style.backgroundColor = ''; // Remove inline style to revert to CSS default
-                 if (colorInput) colorInput.value = defaultColor; // Reset color picker value (might need conversion if defaultColor isn't hex)
+                 if (colorInput) { // Reset color picker value (convert default if needed)
+                    try {
+                        // Attempt direct assignment, works if defaultColor is hex/named
+                        colorInput.value = defaultColor;
+                    } catch (e) {
+                        // Fallback if defaultColor is rgb() or similar - set to black
+                        console.warn("Could not set default color picker value, using black fallback.", defaultColor, e);
+                        colorInput.value = '#000000';
+                    }
+                 }
             });
 
             // --- Recalculate derived values if requested ---
