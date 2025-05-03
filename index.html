@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wine-Dark Character Sheet</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍷</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Custom styles */
@@ -430,8 +431,7 @@
         /* Positioning for hit location boxes */
         .hit-location[data-loc="head"] { top: 3%; left: 41%; }
         .hit-location[data-loc="chest"] { top: 25%; left: 41%; }
-        /* *** UPDATED: Increased top value for gut to prevent overlap *** */
-        .hit-location[data-loc="gut"] { top: 48%; left: 41%; }
+        .hit-location[data-loc="gut"] { top: 48%; left: 41%; } /* Adjusted */
         .hit-location[data-loc="l-arm"] { top: 28%; left: 15%; }
         .hit-location[data-loc="r-arm"] { top: 28%; right: 15%; }
         .hit-location[data-loc="l-leg"] { bottom: 5%; left: 28%; }
@@ -944,8 +944,18 @@
                         // Determine if it's a predefined skill (has baseSkill) or custom (has name)
                         const isPredefined = !!data.baseSkill;
                         const isCustom = !!data.name && !isPredefined; // Custom has name but no baseSkill
+                        // *** UPDATED: Craft/Art uses the 'name' property from saved data ***
+                        const isCraftArt = containerId === 'craft-art-container';
 
-                        if (isPredefined && nameSpan && nameInput) {
+                        if (isCraftArt && nameInput && nameSpan && data.name !== undefined) {
+                             // Special case for Craft/Art which always uses input
+                             nameInput.value = data.name || ''; // Use saved name
+                             nameInput.dataset.baseSkill = data.name || '';
+                             if (data.basePercent !== undefined) nameInput.dataset.basePercent = data.basePercent;
+                             nameInput.style.display = ''; // Show input
+                             nameSpan.style.display = 'none'; // Hide span
+                        }
+                        else if (isPredefined && nameSpan && nameInput) {
                             // Populate predefined skill (using span, hide input)
                             nameSpan.dataset.baseSkill = data.baseSkill;
                             if (data.basePercent !== undefined) nameSpan.dataset.basePercent = data.basePercent;
@@ -955,21 +965,13 @@
                             nameInput.style.display = 'none'; // Hide input
                             // Label text content will be set by updateSkillPercentage
                         } else if (isCustom && nameInput && nameSpan) {
-                            // Populate custom skill (using input, hide span)
+                            // Populate other custom skills (using input, hide span)
                             nameInput.value = data.name;
                             nameInput.dataset.baseSkill = data.name; // Store name as baseSkill identifier
                             if (data.basePercent !== undefined) nameInput.dataset.basePercent = data.basePercent;
                             nameInput.style.display = ''; // Show input
                             nameSpan.style.display = 'none'; // Hide span
-                        } else if (containerId === 'craft-art-container' && nameInput && nameSpan) {
-                             // Special case for Craft/Art which always uses input
-                             nameInput.value = data.name || data.baseSkill || ''; // Use name or baseSkill
-                             nameInput.dataset.baseSkill = data.name || data.baseSkill || '';
-                             if (data.basePercent !== undefined) nameInput.dataset.basePercent = data.basePercent;
-                             nameInput.style.display = ''; // Show input
-                             nameSpan.style.display = 'none'; // Hide span
-                        }
-                         else {
+                        } else {
                             console.warn("Could not determine skill type or find elements for skill entry:", data, "in container:", containerId);
                         }
 
@@ -1764,24 +1766,48 @@
 
 
         document.addEventListener('keydown', (event) => {
+            // console.log(`Keydown: ${event.key}, Shift: ${event.shiftKey}, Ctrl: ${event.ctrlKey}, Active Element: ${document.activeElement.tagName}`); // DEBUGGING
+
             // Ignore modifier keys if focus is inside an input/textarea
-            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+            if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
+                 // console.log("Keydown ignored: Input/Textarea has focus."); // DEBUGGING
+                 return;
+            }
 
             let modifierChanged = false;
-            if (event.key === 'Shift' && !isShiftPressed) { isShiftPressed = true; modifierChanged = true; }
-            // Use event.ctrlKey for better cross-platform compatibility
-            if (event.key === 'Control' && !isCtrlPressed) { isCtrlPressed = true; modifierChanged = true; }
+            // Check the key property directly
+            if (event.key === 'Shift' && !isShiftPressed) {
+                isShiftPressed = true;
+                modifierChanged = true;
+                // console.log("Shift pressed - applying modifiers."); // DEBUGGING
+            }
+            if (event.key === 'Control' && !isCtrlPressed) {
+                isCtrlPressed = true;
+                modifierChanged = true;
+                 // console.log("Control pressed - applying modifiers."); // DEBUGGING
+            }
 
             if (modifierChanged) {
-                 event.preventDefault(); // Prevent default browser actions for Shift/Ctrl if needed
+                 // Only prevent default if a modifier key we care about was pressed
+                 // event.preventDefault(); // Consider removing this if it causes issues
                  applySkillModifiers();
             }
         });
 
         document.addEventListener('keyup', (event) => {
+             // console.log(`Keyup: ${event.key}`); // DEBUGGING
+
              let modifierChanged = false;
-            if (event.key === 'Shift') { isShiftPressed = false; modifierChanged = true; }
-            if (event.key === 'Control') { isCtrlPressed = false; modifierChanged = true; }
+            if (event.key === 'Shift') {
+                isShiftPressed = false;
+                modifierChanged = true;
+                // console.log("Shift released - reverting modifiers."); // DEBUGGING
+            }
+            if (event.key === 'Control') {
+                isCtrlPressed = false;
+                modifierChanged = true;
+                // console.log("Control released - reverting modifiers."); // DEBUGGING
+            }
 
              if (modifierChanged) {
                  applySkillModifiers(); // Revert to base values when key is released
@@ -1790,8 +1816,11 @@
 
         // Reset modifiers if the window loses focus
         window.addEventListener('blur', () => {
+            // console.log("Window blurred - resetting modifiers."); // DEBUGGING
             if (isShiftPressed || isCtrlPressed) {
-                isShiftPressed = false; isCtrlPressed = false; applySkillModifiers();
+                isShiftPressed = false;
+                isCtrlPressed = false;
+                applySkillModifiers();
             }
         });
 
@@ -1882,15 +1911,15 @@
                      data.skills.knowledge.push(skillData);
                  }
              });
-             // Craft/Art always uses input
+             // *** UPDATED: Ensure Craft/Art name is saved from the input field ***
              document.querySelectorAll('#craft-art-container .skill-entry').forEach(entry => {
                  const nameInput = entry.querySelector('.skill-name-input');
                  const rankInput = entry.querySelector('.skill-rank-input');
                  if (nameInput && rankInput) {
                      const skillData = {
                          rank: rankInput.value || '0',
-                         name: nameInput.value || '', // Always save the name for craft/art
-                         basePercent: nameInput.dataset.basePercent || '0', // Default basePercent if missing
+                         name: nameInput.value || '', // Explicitly save the input value as name
+                         basePercent: nameInput.dataset.basePercent || '0',
                      };
                       Object.keys(skillData).forEach(key => skillData[key] === undefined && delete skillData[key]);
                      data.skills.craftArt.push(skillData);
@@ -1934,7 +1963,7 @@
                      notes: entry.querySelector('textarea[placeholder="Notes"]')?.value || ''
                  });
             });
-            // *** UPDATED: Save Hit Location AP, HP, and Item ***
+            // Save Hit Location AP, HP, and Item
             document.querySelectorAll('.hit-location').forEach(loc => {
                 const locId = loc.dataset.loc; // e.g., "head", "l-arm"
                 if (locId) {
@@ -2137,6 +2166,7 @@
             if (data.skills) {
                 data.skills.core?.forEach(skillData => addEntry('skills-container', skillTemplate, skillData));
                 data.skills.knowledge?.forEach(skillData => addEntry('knowledge-container', knowledgeTemplate, skillData));
+                // *** UPDATED: Craft/Art loading relies on addEntry correctly handling data.name ***
                 data.skills.craftArt?.forEach(skillData => addEntry('craft-art-container', craftArtTemplate, skillData));
             }
 
@@ -2149,7 +2179,7 @@
                 data.combat.meleeWeapons?.forEach(weaponData => addEntry('melee-weapons-container', meleeWeaponTemplate, weaponData));
                 data.combat.rangedWeapons?.forEach(weaponData => addEntry('ranged-weapons-container', rangedWeaponTemplate, weaponData));
 
-                // *** UPDATED: Load Hit Location AP, HP, and Item ***
+                // Load Hit Location AP, HP, and Item
                 if (data.combat.hitLocations) {
                     Object.keys(data.combat.hitLocations).forEach(locId => {
                         const locData = data.combat.hitLocations[locId];
@@ -2299,7 +2329,6 @@
 
 
             // --- Reset Hit Locations (AP/HP/Item) ---
-            // *** UPDATED: Clear item field during reset ***
             document.querySelectorAll('.hit-location').forEach(loc => {
                 const locId = loc.dataset.loc;
                 if (locId) {
@@ -2406,4 +2435,4 @@
 
 </body>
 </html>
-" from the most up-to-date Canvas "Wine-Dark Character Sheet (Save Hit Locations & Add Item Field)" document abo
+
