@@ -799,7 +799,7 @@
         const inventorySlotTemplate = `<div class="dynamic-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Slot">-</button><input type="text" placeholder="Item Slot" class="flex-grow"></div>`;
 
         // --- Default Sheet Structure (for Reset) ---
-        // Defines the skills present on a new sheet. Ranks are always 0 initially.
+        // *** UPDATED: Added Smithing to default Craft/Art ***
         const defaultSheetStructure = {
             skills: {
                 core: [
@@ -821,7 +821,9 @@
                     { baseSkill: "Literacy", basePercent: 0 },
                     { baseSkill: "Sport", basePercent: 0 }
                 ],
-                craftArt: [] // Starts empty
+                craftArt: [
+                    { name: "Smithing", basePercent: 0, rank: "0" } // Added Smithing
+                ]
             },
             combat: {
                 skills: [
@@ -2320,12 +2322,13 @@
              // Satchel reset is handled above with other textareas
 
 
-            // --- Populate Default Skills (Core, Knowledge, Combat) ---
-            // Add default skills *only* when resetting the sheet completely
+            // --- Populate Default Skills (Core, Knowledge, Combat, Craft/Art) ---
+            // *** UPDATED: Add default Craft/Art skills on reset ***
             if (updateCalculations) { // Only add defaults if we are doing a full reset (not just clearing for load)
                 defaultSheetStructure.skills.core.forEach(skillDef => addEntry('skills-container', skillTemplate, { ...skillDef, rank: '0' }));
                 defaultSheetStructure.skills.knowledge.forEach(skillDef => addEntry('knowledge-container', knowledgeTemplate, { ...skillDef, rank: '0' }));
                 defaultSheetStructure.combat.skills.forEach(skillDef => addEntry('combat-skills-display', combatStatTemplate, { ...skillDef, rank: '0' }));
+                defaultSheetStructure.skills.craftArt.forEach(skillDef => addEntry('craft-art-container', craftArtTemplate, skillDef)); // Add default craft/art
             }
 
 
@@ -2436,5 +2439,4 @@
 
 </body>
 </html>
-
-
+" from the immersive artifact with id "index.ht
