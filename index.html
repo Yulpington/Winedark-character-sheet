@@ -572,13 +572,15 @@
                  <div class="sub-section mb-4 border-b pb-4">
                      <h4 class="font-semibold mb-1 text-sm flex justify-between items-center"> <span>Melee Weapons</span></h4>
                      <div class="weapon-header text-xs"> <span></span><span>Weapon</span><span>%</span><span>Damage</span><span>STR</span><span>Notes</span><span></span> </div>
-                     <div id="melee-weapons-container"></div>
+                     <div id="melee-weapons-container">
+                         </div>
                       <div class="text-center mt-2"><button class="add-entry-footer-btn" onclick="addEntry('melee-weapons-container', meleeWeaponTemplate)" title="Add Melee Weapon">+</button></div>
                  </div>
                  <div class="sub-section mb-4 border-b pb-4">
                      <h4 class="font-semibold mb-1 text-sm flex justify-between items-center"> <span>Ranged Weapons</span></h4>
                      <div class="weapon-header text-xs"> <span></span><span>Weapon</span><span>%</span><span>Damage</span><span>STR</span><span>Notes</span><span></span> </div>
-                     <div id="ranged-weapons-container"></div>
+                     <div id="ranged-weapons-container">
+                         </div>
                       <div class="text-center mt-2"><button class="add-entry-footer-btn" onclick="addEntry('ranged-weapons-container', rangedWeaponTemplate)" title="Add Ranged Weapon">+</button></div>
                  </div>
                  <div class="sub-section">
@@ -625,7 +627,8 @@
                  </div>
                  <div class="sub-section">
                      <h4 class="font-semibold mb-1 text-sm flex justify-between items-center"> <span>Craft / Art</span></h4>
-                     <div id="craft-art-container"></div>
+                     <div id="craft-art-container">
+                         </div>
                       <div class="text-center mt-2"><button class="add-entry-footer-btn" onclick="addEntry('craft-art-container', craftArtTemplate)" title="Add Craft/Art">+</button></div>
                  </div>
             </div>
@@ -656,7 +659,8 @@
                          <button onclick="addInventorySection()" class="add-entry-footer-btn" title="Add Inventory Container">+</button>
                      </div>
                  </div>
-                 <div id="dynamic-inventory-container" class="grid grid-cols-1 gap-4"></div>
+                 <div id="dynamic-inventory-container" class="grid grid-cols-1 gap-4">
+                     </div>
              </div>
         </div>
 
@@ -698,7 +702,8 @@
                     </button>
                  </div>
             </div>
-             <div id="powers-container" class="section-content"></div>
+             <div id="powers-container" class="section-content">
+                 </div>
              <div class="section-footer"><button class="add-entry-footer-btn" onclick="addEntry('powers-container', powerTemplate)" title="Add Power/Note">+</button></div>
          </div>
 
@@ -729,16 +734,18 @@
         const LOCAL_STORAGE_KEY = 'wineDarkSheetData_v3'; // Use a versioned key
 
         // --- Template Strings for Dynamic Entries ---
-        const skillTemplate = `<div class="dynamic-entry skill-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Skill">-</button><input type="text" placeholder="Skill Name" class="skill-name-input flex-grow" data-base-skill="" data-base-percent="0" oninput="updateDynamicSkillLabel(this)"><input type="number" value="0" class="skill-rank-input" oninput="updateSkillPercentage(this)"><input type="number" value="0" class="skill-percent-display percent-display" readonly><button class="dice-roller-btn" onclick="rollPercentile(this)">🎲</button></div>`;
-        const knowledgeTemplate = `<div class="dynamic-entry skill-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Knowledge">-</button><input type="text" placeholder="Knowledge Area" class="skill-name-input flex-grow" data-base-skill="" data-base-percent="0" oninput="updateDynamicSkillLabel(this)"><input type="number" value="0" class="skill-rank-input" oninput="updateSkillPercentage(this)"><input type="number" value="0" class="skill-percent-display percent-display" readonly><button class="dice-roller-btn" onclick="rollPercentile(this)">🎲</button></div>`;
-        const craftArtTemplate = `<div class="dynamic-entry skill-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Craft/Art">-</button><input type="text" placeholder="Craft/Art Name" class="skill-name-input flex-grow" data-base-skill="" data-base-percent="0" oninput="updateDynamicSkillLabel(this)"><input type="number" value="0" class="skill-rank-input" oninput="updateSkillPercentage(this)"><input type="number" value="0" class="skill-percent-display percent-display" readonly><button class="dice-roller-btn" onclick="rollPercentile(this)">🎲</button></div>`;
-        const combatStatTemplate = `<div class="dynamic-entry skill-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Stat">-</button><input type="text" placeholder="Combat Stat Name" class="skill-name-input flex-grow" data-base-skill="" data-base-percent="0" oninput="updateDynamicSkillLabel(this)"><input type="number" value="0" class="skill-rank-input" oninput="updateSkillPercentage(this)"><input type="number" value="0" class="skill-percent-display percent-display" readonly><button class="dice-roller-btn" onclick="rollPercentile(this)">🎲</button></div>`;
+        // Use span for predefined skill names, input for user-added ones
+        const skillTemplate = `<div class="dynamic-entry skill-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Skill">-</button><span class="skill-name-display" data-base-skill="" data-base-percent="0">Skill Name</span><input type="text" placeholder="Skill Name" class="skill-name-input flex-grow" style="display:none;" oninput="updateDynamicSkillLabel(this)"><input type="number" value="0" class="skill-rank-input" oninput="updateSkillPercentage(this)"><input type="number" value="0" class="skill-percent-display percent-display" readonly><button class="dice-roller-btn" onclick="rollPercentile(this)">🎲</button></div>`;
+        const knowledgeTemplate = `<div class="dynamic-entry skill-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Knowledge">-</button><span class="skill-name-display" data-base-skill="" data-base-percent="0">Knowledge Area</span><input type="text" placeholder="Knowledge Area" class="skill-name-input flex-grow" style="display:none;" oninput="updateDynamicSkillLabel(this)"><input type="number" value="0" class="skill-rank-input" oninput="updateSkillPercentage(this)"><input type="number" value="0" class="skill-percent-display percent-display" readonly><button class="dice-roller-btn" onclick="rollPercentile(this)">🎲</button></div>`;
+        const craftArtTemplate = `<div class="dynamic-entry skill-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Craft/Art">-</button><input type="text" placeholder="Craft/Art Name" class="skill-name-input flex-grow" data-base-skill="" data-base-percent="0" oninput="updateDynamicSkillLabel(this)"><input type="number" value="0" class="skill-rank-input" oninput="updateSkillPercentage(this)"><input type="number" value="0" class="skill-percent-display percent-display" readonly><button class="dice-roller-btn" onclick="rollPercentile(this)">🎲</button></div>`; // Craft/Art always uses input
+        const combatStatTemplate = `<div class="dynamic-entry skill-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Stat">-</button><span class="skill-name-display" data-base-skill="" data-base-percent="0">Combat Stat</span><input type="text" placeholder="Combat Stat Name" class="skill-name-input flex-grow" style="display:none;" oninput="updateDynamicSkillLabel(this)"><input type="number" value="0" class="skill-rank-input" oninput="updateSkillPercentage(this)"><input type="number" value="0" class="skill-percent-display percent-display" readonly><button class="dice-roller-btn" onclick="rollPercentile(this)">🎲</button></div>`;
         const meleeWeaponTemplate = `<div class="dynamic-entry weapon-entry" data-weapon-type="melee"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Weapon">-</button><textarea placeholder="Weapon Name" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><input type="number" value="0" class="text-center skill-percent-input" oninput="updateXpSpent()"><input type="text" placeholder="e.g. 1d4" class="dmg-input"><span class="str-dmg-mod">(+0)</span><textarea placeholder="Notes" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><button class="dice-roller-btn" onclick="rollWeaponAttack(this)">🎲</button></div>`;
-        const rangedWeaponTemplate = `<div class="dynamic-entry weapon-entry" data-weapon-type="ranged"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Weapon">-</button><textarea placeholder="Weapon Name" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><input type="number" value="0" class="text-center skill-percent-input" oninput="updateXpSpent()"><input type="text" placeholder="e.g. 1d6" class="dmg-input"><span class="str-dmg-mod">(+0)</span><textarea placeholder="Notes" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><button class="dice-roller-btn" onclick="rollWeaponAttack(this)">🎲</button></div>`;
+        const rangedWeaponTemplate = `<div class="dynamic-entry weapon-entry" data-weapon-type="ranged"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Weapon">-</button><textarea placeholder="Weapon Name" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><input type="number" value="0" class="text-center skill-percent-input" oninput="updateXpSpent()"><input type="number" value="0" placeholder="e.g. 1d6" class="dmg-input"><span class="str-dmg-mod">(+0)</span><textarea placeholder="Notes" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><button class="dice-roller-btn" onclick="rollWeaponAttack(this)">🎲</button></div>`;
         const powerTemplate = `<div class="dynamic-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Power/Note">-</button><input type="text" placeholder="Power or Note" class="flex-grow"></div>`;
         const inventorySlotTemplate = `<div class="dynamic-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Slot">-</button><input type="text" placeholder="Item Slot" class="flex-grow"></div>`;
 
         // --- Default Sheet Structure (for Reset) ---
+        // Defines the skills present on a new sheet. Ranks are always 0 initially.
         const defaultSheetStructure = {
             skills: {
                 core: [
@@ -792,7 +799,7 @@
                 const sheetData = gatherSheetData();
                 const jsonData = JSON.stringify(sheetData);
                 localStorage.setItem(LOCAL_STORAGE_KEY, jsonData);
-                 console.log("Sheet data saved to local storage."); // DEBUGGING
+                 // console.log("Sheet data saved to local storage."); // DEBUGGING
             } catch (error) {
                 console.error("Error saving sheet data to local storage:", error);
                 showDicePopup("Error saving sheet data. See console.");
@@ -803,31 +810,31 @@
         const debouncedSave = debounce(saveSheetToLocalStorage, 500); // Save 500ms after last change
 
         function loadSheetFromLocalStorage() {
-            console.log("Attempting to load sheet from local storage..."); // DEBUGGING
+            // console.log("Attempting to load sheet from local storage..."); // DEBUGGING
             try {
                 const jsonData = localStorage.getItem(LOCAL_STORAGE_KEY);
                 if (jsonData) {
-                    console.log("Found saved data:", jsonData.substring(0, 200) + "..."); // DEBUGGING - Log start of data
+                    // console.log("Found saved data:", jsonData.substring(0, 200) + "..."); // DEBUGGING - Log start of data
                     const data = JSON.parse(jsonData);
                     // Basic validation - check if it looks like our data
-                    // Loosened version check slightly for backward compatibility if needed
-                    if (typeof data === 'object' && data !== null && data.version && data.version >= 2) {
-                        console.log("Parsed data version:", data.version); // DEBUGGING
+                    if (typeof data === 'object' && data !== null && data.version && data.version >= 3) { // Updated version check if needed
+                        // console.log("Parsed data version:", data.version); // DEBUGGING
+                        // --- IMPORTANT: Reset sheet state *before* populating ---
                         setDefaultSheetState(false); // Reset sheet without recalculating yet
-                        populateSheetData(data); // Populate the DOM
-                        console.log("Sheet data loaded successfully from local storage. Recalculating..."); // DEBUGGING
+                        populateSheetData(data); // Populate the DOM from saved data
+                        // console.log("Sheet data loaded successfully from local storage. Recalculating..."); // DEBUGGING
                         // Recalculate everything *after* populating
                         updateHpDisplay();
                         updatePercentages(); // This includes skills and STR mod
                         updateXpSpent();
-                        console.log("Recalculations complete after load."); // DEBUGGING
+                        // console.log("Recalculations complete after load."); // DEBUGGING
                         return true; // Indicate successful load
                     } else {
                         console.warn("Invalid or outdated data found in local storage. Version:", data?.version); // DEBUGGING
                         localStorage.removeItem(LOCAL_STORAGE_KEY); // Remove invalid data
                     }
                 } else {
-                    console.log("No data found in local storage for key:", LOCAL_STORAGE_KEY); // DEBUGGING
+                    // console.log("No data found in local storage for key:", LOCAL_STORAGE_KEY); // DEBUGGING
                 }
             } catch (error) {
                 console.error("Error loading or parsing sheet data from local storage:", error); // DEBUGGING
@@ -836,7 +843,7 @@
             }
 
             // If function hasn't returned true, it means loading failed or no data found
-            console.log("Loading failed or no data found. Setting default state."); // DEBUGGING
+            // console.log("Loading failed or no data found. Setting default state."); // DEBUGGING
             setDefaultSheetState(true); // Set default state and calculate
             return false; // Indicate load failed or no data
         }
@@ -845,8 +852,8 @@
         // --- Auto-expand Textarea ---
         function autoExpandTextarea(textarea) {
             if (textarea) {
-                textarea.style.height = 'auto';
-                textarea.style.height = textarea.scrollHeight + 'px';
+                textarea.style.height = 'auto'; // Temporarily shrink to base height
+                textarea.style.height = textarea.scrollHeight + 'px'; // Set to scroll height
             }
         }
 
@@ -855,17 +862,17 @@
             const container = document.getElementById(containerId);
             if (!container) {
                 console.error("Container not found:", containerId);
-                return;
+                return null; // Return null if container not found
             }
 
             container.insertAdjacentHTML('beforeend', template);
             const newEntry = container.lastElementChild;
             if (!newEntry) {
                 console.error("Failed to add new entry to container:", containerId);
-                return;
+                return null; // Return null if entry creation failed
             }
 
-            // Initialize auto-expand for textareas
+            // Initialize auto-expand for textareas within the new entry
             newEntry.querySelectorAll('textarea.auto-expand').forEach(ta => {
                 ta.addEventListener('input', () => autoExpandTextarea(ta));
                 autoExpandTextarea(ta); // Initial call
@@ -875,31 +882,40 @@
             if (data) {
                 try { // Wrap population in try-catch for better error isolation
                     if (newEntry.classList.contains('skill-entry')) {
+                        const nameSpan = newEntry.querySelector('.skill-name-display');
                         const nameInput = newEntry.querySelector('.skill-name-input');
                         const rankInput = newEntry.querySelector('.skill-rank-input');
-                        const nameSpan = newEntry.querySelector('.skill-name-display');
 
-                        // Determine if it's a predefined skill (has baseSkill in definition)
-                        // or a dynamic one (added by user, identified by 'name' in saved data)
-                        const isPredefined = data.baseSkill && (
-                                            defaultSheetStructure.skills.core.some(def => def.baseSkill === data.baseSkill) ||
-                                            defaultSheetStructure.skills.knowledge.some(def => def.baseSkill === data.baseSkill) ||
-                                            defaultSheetStructure.combat.skills.some(def => def.baseSkill === data.baseSkill)
-                                        );
+                        // Determine if it's a predefined skill (has baseSkill) or custom (has name)
+                        const isPredefined = !!data.baseSkill;
+                        const isCustom = !!data.name && !isPredefined; // Custom has name but no baseSkill
 
-                        if (isPredefined && nameSpan) { // Populate predefined skill (using span)
+                        if (isPredefined && nameSpan && nameInput) {
+                            // Populate predefined skill (using span, hide input)
                             nameSpan.dataset.baseSkill = data.baseSkill;
                             if (data.basePercent !== undefined) nameSpan.dataset.basePercent = data.basePercent;
                             if (data.attribute) nameSpan.dataset.attribute = data.attribute;
                             if (data.multiplier) nameSpan.dataset.multiplier = data.multiplier;
+                            nameSpan.style.display = ''; // Show span
+                            nameInput.style.display = 'none'; // Hide input
                             // Label text content will be set by updateSkillPercentage
-                        } else if (nameInput) { // Populate dynamic skill OR predefined skill rendered as input (fallback)
-                            const skillIdentifier = data.name || data.baseSkill || '';
-                            nameInput.value = skillIdentifier;
-                            nameInput.dataset.baseSkill = skillIdentifier; // Store the identifier
+                        } else if (isCustom && nameInput && nameSpan) {
+                            // Populate custom skill (using input, hide span)
+                            nameInput.value = data.name;
+                            nameInput.dataset.baseSkill = data.name; // Store name as baseSkill identifier
                             if (data.basePercent !== undefined) nameInput.dataset.basePercent = data.basePercent;
-                        } else {
-                            console.warn("Could not find nameSpan or nameInput for skill entry:", data);
+                            nameInput.style.display = ''; // Show input
+                            nameSpan.style.display = 'none'; // Hide span
+                        } else if (containerId === 'craft-art-container' && nameInput && nameSpan) {
+                             // Special case for Craft/Art which always uses input
+                             nameInput.value = data.name || data.baseSkill || ''; // Use name or baseSkill
+                             nameInput.dataset.baseSkill = data.name || data.baseSkill || '';
+                             if (data.basePercent !== undefined) nameInput.dataset.basePercent = data.basePercent;
+                             nameInput.style.display = ''; // Show input
+                             nameSpan.style.display = 'none'; // Hide span
+                        }
+                         else {
+                            console.warn("Could not determine skill type or find elements for skill entry:", data, "in container:", containerId);
                         }
 
                         if (rankInput) {
@@ -935,14 +951,34 @@
                 } catch (error) {
                     console.error("Error populating entry:", error, "Data:", data, "Entry:", newEntry);
                 }
+            } else {
+                 // Handle adding a *new* blank skill entry (user clicked '+')
+                 if (newEntry.classList.contains('skill-entry')) {
+                     const nameSpan = newEntry.querySelector('.skill-name-display');
+                     const nameInput = newEntry.querySelector('.skill-name-input');
+                     const isCraftArt = containerId === 'craft-art-container';
+
+                     if (nameSpan && nameInput) {
+                         if (isCraftArt) {
+                             nameSpan.style.display = 'none'; // Hide span for new craft/art
+                             nameInput.style.display = ''; // Show input for new craft/art
+                             nameInput.focus(); // Focus the input for easy typing
+                         } else {
+                             nameSpan.style.display = 'none'; // Hide span for new core/knowledge/combat
+                             nameInput.style.display = ''; // Show input
+                             nameInput.focus();
+                         }
+                     }
+                     // Ensure XP updates when adding a blank skill
+                     updateXpSpent();
+                 }
+                 // Ensure XP updates when adding a blank weapon
+                 if (newEntry.classList.contains('weapon-entry')) {
+                     updateXpSpent();
+                 }
             }
 
-            // Update XP Spent if a skill or weapon % was added (even if data wasn't provided initially)
-            // This should happen regardless of whether data was populated or not
-            if (newEntry.classList.contains('skill-entry') || newEntry.querySelector('.skill-percent-input')) {
-                updateXpSpent(); // Ensure XP updates correctly when adding new blank entries
-            }
-             // Save is triggered by the main event listener, not needed here
+            return newEntry; // Return the newly created entry element
         }
 
 
@@ -997,6 +1033,10 @@
             if (data && data.items) {
                 const slotsContainer = document.getElementById(slotsContainerId);
                 if (slotsContainer) {
+                    // Clear any default slot added by the template if loading data
+                    if (slotsContainer.querySelector('.dynamic-entry')) {
+                        slotsContainer.innerHTML = '';
+                    }
                     data.items.forEach(itemData => addEntry(slotsContainerId, inventorySlotTemplate, itemData));
                 }
             }
@@ -1072,7 +1112,8 @@
             const letters = '0123456789ABCDEF';
             let color = '#';
             for (let i = 0; i < 6; i++) {
-                color += letters[Math.floor(Math.random() * 10)];
+                // Generate slightly darker/less saturated colors
+                color += letters[Math.floor(Math.random() * 12)]; // Use 0-B instead of 0-F
             }
             return color;
         }
@@ -1097,26 +1138,59 @@
         function parseDiceString(diceString) {
             diceString = String(diceString || '0').toLowerCase().replace(/\s+/g, '');
             let numDice = 0, numSides = 0, flatModifier = 0, sign = '+';
+
+            // Extract sign if present at the beginning
             if (diceString.startsWith('+') || diceString.startsWith('-')) {
                 sign = diceString[0];
                 diceString = diceString.substring(1);
             }
-            const flatModRegex = /([+-]\d+)$/;
-            const flatMatch = diceString.match(flatModRegex);
-            if (flatMatch) {
-                flatModifier = parseInt(flatMatch[1]);
-                diceString = diceString.slice(0, flatMatch.index);
-            }
+
+            // Match dice notation (e.g., "2d6", "d10")
             const diceRegex = /(\d+)?d(\d+)/;
             const diceMatch = diceString.match(diceRegex);
+
             if (diceMatch) {
                 numDice = diceMatch[1] ? parseInt(diceMatch[1]) : 1;
                 numSides = parseInt(diceMatch[2]);
-            } else if (!isNaN(parseInt(diceString))) {
-                flatModifier = parseInt(diceString);
+                // Remove the dice part from the string to find the modifier
+                diceString = diceString.replace(diceRegex, '').trim();
             }
+
+            // Check for remaining part as flat modifier
+            if (diceString) {
+                 // Handle modifier signs explicitly
+                 if (diceString.startsWith('+')) {
+                     flatModifier = parseInt(diceString.substring(1)) || 0;
+                 } else if (diceString.startsWith('-')) {
+                     flatModifier = -(parseInt(diceString.substring(1)) || 0);
+                 } else if (!isNaN(parseInt(diceString))) {
+                     // If no sign, assume positive modifier *if* dice were present,
+                     // otherwise it's just a flat number
+                     if (diceMatch) {
+                         flatModifier = parseInt(diceString);
+                     } else {
+                         // If no 'd' was found, the whole initial string (after sign removal) is the flat modifier
+                         flatModifier = parseInt(diceString);
+                         // If the original string was just a sign, modifier is 0
+                         if (isNaN(flatModifier)) flatModifier = 0;
+                     }
+                 }
+            }
+
+             // If no dice and no modifier found, but the original string was just a number
+             if (numDice === 0 && flatModifier === 0 && !isNaN(parseInt(diceString))) {
+                 flatModifier = parseInt(diceString);
+             }
+
+             // If the original string was just a sign (e.g., "+"), treat as 0
+             if (numDice === 0 && flatModifier === 0 && (diceString === '+' || diceString === '-')) {
+                 flatModifier = 0;
+             }
+
+
             return { numDice, numSides, flatModifier, sign };
         }
+
 
         function rollParsedDice(parsedResult) {
             let diceTotal = 0;
@@ -1128,17 +1202,30 @@
             }
             let totalValue = diceTotal + parsedResult.flatModifier;
             let rollsString = "";
+
             if (parsedResult.numDice > 0) {
                 rollsString = `${parsedResult.numDice}d${parsedResult.numSides} (${rolls.join(', ')})`;
-                if (parsedResult.flatModifier !== 0) rollsString += (parsedResult.flatModifier > 0 ? ` +${parsedResult.flatModifier}` : ` ${parsedResult.flatModifier}`);
-            } else if (parsedResult.flatModifier !== 0) rollsString = `${parsedResult.flatModifier}`;
-            else rollsString = "0";
-            if (parsedResult.sign === '-' || parsedResult.numDice > 0) rollsString = parsedResult.sign + rollsString;
-            if (parsedResult.sign === '-') totalValue = -totalValue;
-            if (rollsString === "+0") rollsString = "0";
-            else if (rollsString.startsWith('+') && parsedResult.numDice === 0) rollsString = rollsString.substring(1);
+                if (parsedResult.flatModifier !== 0) {
+                     rollsString += (parsedResult.flatModifier > 0 ? ` + ${parsedResult.flatModifier}` : ` - ${Math.abs(parsedResult.flatModifier)}`);
+                }
+            } else if (parsedResult.flatModifier !== 0) {
+                rollsString = `${parsedResult.flatModifier}`;
+            } else {
+                rollsString = "0"; // Explicitly show 0 if no dice and no modifier
+            }
+
+            // Apply the overall sign if needed (only affects the final value)
+            if (parsedResult.sign === '-') {
+                totalValue = -totalValue;
+                // Add sign to the string representation unless it's just "0"
+                if (rollsString !== "0") {
+                     rollsString = parsedResult.sign + rollsString;
+                }
+            }
+
             return { totalValue, rollsString };
         }
+
 
         function getMaxParsedDice(parsedResult) {
              let maxDiceValue = parsedResult.numDice * parsedResult.numSides;
@@ -1150,7 +1237,7 @@
 
         // --- Dice Roller & Related Functions ---
         const dicePopup = document.getElementById('dice-result-popup');
-        let currentRoller = null;
+        let currentRoller = null; // Track which button opened the popup
 
         function showDicePopup(content) {
             if(dicePopup) {
@@ -1161,57 +1248,88 @@
             }
         }
 
+        // Generic function to close the dice popup
+        function closeDicePopup() {
+             if (dicePopup) {
+                 dicePopup.style.display = 'none';
+             }
+             currentRoller = null;
+        }
+
         function rollPercentile(buttonElement) {
             if (!dicePopup) return; // Prevent errors if popup missing
+            // If the same button is clicked again while popup is open, close it
             if (currentRoller === buttonElement && dicePopup.style.display === 'block') {
-                dicePopup.style.display = 'none';
-                currentRoller = null;
+                closeDicePopup();
                 return;
             }
 
             const entry = buttonElement.closest('.dynamic-entry');
             const skillPercentDisplay = entry?.querySelector('.skill-percent-display');
+            // Read the *current* value, considering modifiers
             const skillValue = skillPercentDisplay ? parseInt(skillPercentDisplay.value) || 0 : 0;
             const skillNameElement = entry?.querySelector('.skill-name-display') || entry?.querySelector('.skill-name-input');
             let skillName = "Skill";
             if (skillNameElement) {
-                skillName = skillNameElement.dataset.baseSkill || (skillNameElement.tagName === 'SPAN' ? skillNameElement.textContent.split(' (')[0] : skillNameElement.value) || "Skill";
+                // Prioritize baseSkill for predefined, then input value for custom
+                skillName = skillNameElement.dataset.baseSkill || (skillNameElement.tagName === 'INPUT' ? skillNameElement.value : skillNameElement.textContent.split(' (')[0]) || "Skill";
             }
 
             const roll = rollSingleDie(100);
-            const success = roll <= skillValue && roll < 100;
-            const resultColor = success ? '#4ade80' : '#f87171';
+            const success = roll <= skillValue && roll < 100; // 100 is always fumble
+            const resultColor = success ? '#4ade80' : '#f87171'; // Green for success, Red for fail/fumble
+
             let popupContent = `<span style="color:${resultColor}; font-weight: bold;">${roll}</span> <span class="text-xs ml-2">vs ${skillValue}% (${skillName})</span>`;
-            if (roll === 100) popupContent += `<span class="fumble-roll-text">Fumble!</span>`;
+
+            if (roll === 100) {
+                popupContent += `<span class="fumble-roll-text">Fumble!</span>`;
+            } else if (roll <= 5 && success) { // Check for critical success (example: roll <= 5)
+                 popupContent += `<span class="critical-roll-text">Critical!</span>`;
+            } else if (!success) {
+                // Optional: Add specific text for failure?
+                // popupContent += ` (Fail)`;
+            }
+
+
             showDicePopup(popupContent);
-            currentRoller = buttonElement;
+            currentRoller = buttonElement; // Set the current roller
         }
 
         function rollCharacteristic(buttonElement, charName) {
              if (!dicePopup) return;
+             // If the same button is clicked again while popup is open, close it
              if (currentRoller === buttonElement && dicePopup.style.display === 'block') {
-                dicePopup.style.display = 'none';
-                currentRoller = null;
-                return;
-            }
+                 closeDicePopup();
+                 return;
+             }
+
             const percentDisplay = document.getElementById(`${charName}-percent`);
+            // Read the *current* value from the display, considering modifiers
             let charValue = percentDisplay ? parseInt(percentDisplay.value.replace('%','')) || 0 : 0;
             const charLabel = charName.toUpperCase();
+
             const roll = rollSingleDie(100);
-            const success = roll <= charValue && roll < 100;
-            const resultColor = success ? '#4ade80' : '#f87171';
+            const success = roll <= charValue && roll < 100; // 100 is always fumble
+            const resultColor = success ? '#4ade80' : '#f87171'; // Green for success, Red for fail/fumble
+
             let popupContent = `<span style="color:${resultColor}; font-weight: bold;">${roll}</span> <span class="text-xs ml-2">vs ${charValue}% (${charLabel})</span>`;
-             if (roll === 100) popupContent += `<span class="fumble-roll-text">Fumble!</span>`;
+
+             if (roll === 100) {
+                 popupContent += `<span class="fumble-roll-text">Fumble!</span>`;
+             } else if (roll <= 5 && success) { // Check for critical success (example: roll <= 5)
+                 popupContent += `<span class="critical-roll-text">Critical!</span>`;
+             }
+
              showDicePopup(popupContent);
-             currentRoller = buttonElement;
+             currentRoller = buttonElement; // Set the current roller
         }
 
 
         function rollWeaponAttack(buttonElement) {
              if (!dicePopup) return;
+             // If the same button is clicked again while popup is open, close it
              if (currentRoller === buttonElement && dicePopup.style.display === 'block') {
-                 dicePopup.style.display = 'none';
-                 currentRoller = null;
+                 closeDicePopup();
                  return;
              }
 
@@ -1221,86 +1339,106 @@
              const dmgInput = entry?.querySelector('.dmg-input');
              const baseDmgString = dmgInput?.value || '0';
              const strModElement = entry?.querySelector('.str-dmg-mod');
-             const strModString = strModElement ? strModElement.textContent : '(+0)';
+             const strModString = strModElement ? strModElement.textContent : '(+0)'; // e.g., "(+1d4)" or "(-1d6)"
 
-             const weaponType = entry?.dataset.weaponType;
+             const weaponType = entry?.dataset.weaponType; // 'melee' or 'ranged'
              const weaponSkillInput = entry?.querySelector('.skill-percent-input');
              const weaponSkillValue = weaponSkillInput ? parseInt(weaponSkillInput.value) || 0 : 0;
 
+             // Find the corresponding base combat skill (Melee or Range)
              const baseCombatSkillSelector = weaponType === 'melee'
-                 ? '#combat-skills-display .skill-entry [data-base-skill="Melee"]'
+                 ? '#combat-skills-display .skill-entry [data-base-skill="Melee"]' // Target the span/input with the data attribute
                  : '#combat-skills-display .skill-entry [data-base-skill="Range"]';
              const baseCombatSkillElement = document.querySelector(baseCombatSkillSelector);
              const baseSkillPercentDisplay = baseCombatSkillElement?.closest('.skill-entry')?.querySelector('.skill-percent-display');
+             // Read the *current* value of the base skill, considering modifiers
              const baseSkillValue = baseSkillPercentDisplay ? parseInt(baseSkillPercentDisplay.value) || 0 : 0;
 
-             const totalSkillValue = Math.min(75, baseSkillValue + weaponSkillValue);
+             // Calculate total attack skill (base + weapon specific, capped at 75% unless base is higher)
+             const totalSkillValue = Math.max(baseSkillValue, Math.min(75, baseSkillValue + weaponSkillValue));
 
+             // --- Roll the Attack ---
              const roll = rollSingleDie(100);
              let specialResultText = "";
-             let isCrit = roll <= 2;
-             let isSpecial = roll >= 3 && roll <= 15;
-             let isFumble = roll >= 96;
+             let isCrit = roll <= 2; // Critical on 1 or 2
+             let isSpecial = roll >= 3 && roll <= 15; // Special effect on 3-15
+             let isFumble = roll >= 96; // Fumble on 96-100
+             // Determine success: hit if roll <= totalSkillValue AND not a fumble, OR if it's a crit (crit always hits if skill > 0)
              let success = (roll <= totalSkillValue && !isFumble) || (isCrit && totalSkillValue > 0);
 
-             const resultColor = success ? '#4ade80' : '#f87171';
+             const resultColor = success ? '#4ade80' : '#f87171'; // Green for success, Red for fail/fumble
              let popupContent = `<span style="font-weight: bold;">${weaponName}: </span>`;
              popupContent += `<span style="color:${resultColor}; font-weight: bold;">${roll}</span> <span class="text-xs ml-1">vs ${totalSkillValue}%</span>`;
 
+             // --- Determine Outcome and Damage ---
              if (isFumble) {
                  specialResultText = `<span class="fumble-roll-text">Fumble!</span>`;
-                 success = false;
+                 success = false; // Ensure fumble overrides success
                  popupContent += specialResultText;
+                 popupContent += `\n<span style="font-size: 0.9em;">Attack fails!</span>`;
              } else if (success) {
-                 const hitLocation = getHitLocation();
+                 const hitLocation = getHitLocation(); // Determine hit location
                  let totalFinalDamage = 0;
                  let damageResultString = "";
+
+                 // Parse base damage and STR modifier strings
                  const parsedBaseDmg = parseDiceString(baseDmgString);
-                 const parsedStrMod = parseDiceString(strModString.replace(/[()]/g, ''));
+                 const parsedStrMod = parseDiceString(strModString.replace(/[()]/g, '')); // Remove parentheses before parsing
 
                  if (isCrit) {
                      specialResultText = `<span class="critical-roll-text">Critical! Bypass Armor!</span>`;
+                     // Calculate max possible damage (max dice roll + modifier)
                      const maxBase = getMaxParsedDice(parsedBaseDmg);
                      const maxMod = getMaxParsedDice(parsedStrMod);
-                     totalFinalDamage = Math.max(0, maxBase + maxMod);
+                     totalFinalDamage = Math.max(0, maxBase + maxMod); // Ensure damage isn't negative
                      damageResultString = `Max ${baseDmgString}${strModString} = <span style="font-weight:bold;">${totalFinalDamage}</span> Damage`;
                  } else if (isSpecial) {
                      specialResultText = `<span class="special-roll-text">Special! Max Damage!</span>`;
+                     // Calculate max possible damage
                      const maxBase = getMaxParsedDice(parsedBaseDmg);
                      const maxMod = getMaxParsedDice(parsedStrMod);
                      totalFinalDamage = Math.max(0, maxBase + maxMod);
                      damageResultString = `Max ${baseDmgString}${strModString} = <span style="font-weight:bold;">${totalFinalDamage}</span> Damage`;
                  } else {
+                     // Normal Hit: Roll base damage and add modifier
                      const { totalValue: rolledBase, rollsString: baseRolls } = rollParsedDice(parsedBaseDmg);
                      const { totalValue: rolledMod, rollsString: modRolls } = rollParsedDice(parsedStrMod);
-                     totalFinalDamage = Math.max(0, rolledBase + rolledMod);
+                     totalFinalDamage = Math.max(0, rolledBase + rolledMod); // Ensure damage isn't negative
+
+                     // Construct the damage string
                      damageResultString = baseRolls;
+                     // Append modifier string if it exists and isn't "0"
                      if (modRolls && modRolls !== "0") {
-                        if (!modRolls.startsWith('+') && !modRolls.startsWith('-')) damageResultString += " + ";
-                        else damageResultString += " ";
+                         // Add appropriate sign/spacing
+                         if (!modRolls.startsWith('+') && !modRolls.startsWith('-')) {
+                             damageResultString += " + ";
+                         } else {
+                             damageResultString += " "; // Add space if sign is present
+                         }
                          damageResultString += modRolls;
                      }
                      damageResultString += ` = <span style="font-weight:bold;">${totalFinalDamage}</span> Damage`;
                  }
                  popupContent += specialResultText;
                  popupContent += `\n<span style="font-size: 0.9em;">${damageResultString} to <span style="font-weight:bold;">${hitLocation}</span></span>`;
-             } else {
+             } else { // Failed roll (not a fumble)
                  popupContent += `\n<span style="font-size: 0.9em;">Miss!</span>`;
              }
+
              showDicePopup(popupContent);
-             currentRoller = buttonElement;
+             currentRoller = buttonElement; // Set the current roller
         }
 
 
         function getHitLocation() {
             const roll = rollSingleDie(100);
-            if (roll < 10) return "Head";
-            if (roll < 25) return "R. Arm";
-            if (roll < 40) return "L. Arm";
-            if (roll < 55) return "Chest";
-            if (roll < 70) return "Gut";
-            if (roll < 85) return "R. Leg";
-            return "L. Leg";
+            if (roll < 10) return "Head";      // 01-09
+            if (roll < 25) return "R. Arm";    // 10-24
+            if (roll < 40) return "L. Arm";    // 25-39
+            if (roll < 55) return "Chest";     // 40-54
+            if (roll < 70) return "Gut";       // 55-69
+            if (roll < 85) return "R. Leg";    // 70-84
+            return "L. Leg";                    // 85-00
         }
 
         // --- HP and Percentage Calculation ---
@@ -1313,8 +1451,8 @@
         const hpMaxElements = document.querySelectorAll('.hp-max');
         const hpCurrentInputs = document.querySelectorAll('.hp-current');
 
-        const hpTable = { /* ... HP table data ... */
-            head:    [0,1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7],
+        const hpTable = { // CON score 1-21+
+            head:    [0,1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7], // Index 0 is unused (CON 0)
             arm:     [0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6],
             chest:   [0,1,2,2,2,3,3,4,4,4,5,5,5,6,6,6,7,7,8,8,8,9],
             abdomen: [0,1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7],
@@ -1322,6 +1460,7 @@
         };
 
         function calculateHp(conScore) {
+            // Clamp CON score between 1 and 21 for table lookup
             const score = Math.max(1, Math.min(21, parseInt(conScore) || 0));
             return {
                 head: hpTable.head[score], arm: hpTable.arm[score], chest: hpTable.chest[score],
@@ -1345,12 +1484,11 @@
                         const currentVal = parseInt(input.value);
                         const maxVal = hpValues[location];
                         // Reset to max only if current value is invalid or higher than new max
-                        // Also check against defaultValue to handle resets correctly
-                        if (isNaN(currentVal) || currentVal > maxVal || input.value === '' || input.value === input.defaultValue) {
+                        // OR if the input is currently empty (e.g., after reset)
+                        if (isNaN(currentVal) || currentVal > maxVal || input.value === '') {
                             input.value = maxVal;
-                            // Don't set defaultValue here, let it be set by setDefaultSheetState or loading
                         }
-                        input.max = maxVal;
+                        input.max = maxVal; // Update max attribute for potential browser validation
                     }
                  }
             });
@@ -1359,23 +1497,21 @@
 
         function getStrDamageModifier(strScore) {
             const score = parseInt(strScore) || 0;
-            if (score <= 2) return "(-?)";
-            if (score <= 6) return "(-1d6)";
-            if (score <= 8) return "(-1d4)";
-            if (score <= 12) return "(+0)";
-            if (score <= 16) return "(+1d4)";
-            if (score <= 20) return "(+2d4)";
+            if (score <= 2) return "(-?)";    // Very weak
+            if (score <= 6) return "(-1d6)";  // Weak
+            if (score <= 8) return "(-1d4)";  // Below Average
+            if (score <= 12) return "(+0)";   // Average
+            if (score <= 16) return "(+1d4)"; // Above Average
+            if (score <= 20) return "(+2d4)"; // Strong
+            // For scores above 20, add +1d4 for every 10 points (or fraction thereof) starting from 21
+            // 21-29: +3d4, 30-39: +4d4, etc.
             let diceCount = 2; // Base for 17-20
-            if (score >= 30 && score < 40) diceCount = 3;
-            else if (score >= 40 && score < 50) diceCount = 4;
-            else if (score >= 50 && score < 60) diceCount = 5;
-            else if (score >= 60 && score < 70) diceCount = 6;
-            else if (score >= 70 && score < 80) diceCount = 7;
-            else if (score >= 80 && score < 90) diceCount = 8;
-            else if (score >= 90 && score < 100) diceCount = 9;
-            else if (score >= 100) diceCount = 10;
+            if (score > 20) {
+                 diceCount = 2 + Math.ceil((score - 20) / 10);
+            }
             return `(+${diceCount}d4)`;
         }
+
 
         function updateStrDamageModifiers() {
             const strScore = strInput ? strInput.value : '0'; // Add null check
@@ -1393,56 +1529,70 @@
             const entry = rankInputElement.closest('.skill-entry');
             if (!entry) return;
 
-            const nameSpan = entry.querySelector('.skill-name-display') || entry.querySelector('.skill-name-input');
+            const nameSpan = entry.querySelector('.skill-name-display');
+            const nameInput = entry.querySelector('.skill-name-input');
             const percentDisplay = entry.querySelector('.skill-percent-display');
-            // Ensure both name element and percent display exist
-            if (!nameSpan || !percentDisplay) {
-                console.warn("Missing name or percent display element in skill entry:", entry);
+            // Choose the correct element for skill details based on visibility
+            const detailSourceElement = (nameSpan && nameSpan.style.display !== 'none') ? nameSpan : nameInput;
+
+            // Ensure we have a source for details and a display element
+            if (!detailSourceElement || !percentDisplay) {
+                console.warn("Missing detail source or percent display element in skill entry:", entry);
                 return;
             }
 
             const rank = parseInt(rankInputElement.value) || 0;
-            let basePercent = parseInt(nameSpan.dataset.basePercent) || 0;
-            const attribute = nameSpan.dataset.attribute;
-            const multiplier = parseInt(nameSpan.dataset.multiplier) || 1;
+            let basePercent = parseInt(detailSourceElement.dataset.basePercent) || 0;
+            const attribute = detailSourceElement.dataset.attribute;
+            const multiplier = parseInt(detailSourceElement.dataset.multiplier) || 1;
 
+            // Calculate base percentage from attribute if applicable
             if (attribute) {
                 const attrInput = document.getElementById(attribute.toLowerCase());
                 if (attrInput) { // Check if attribute input exists
                     const attrValue = parseInt(attrInput.value) || 0;
                     basePercent = attrValue * multiplier;
                 } else {
-                     console.warn("Attribute input not found for skill:", nameSpan.dataset.baseSkill || nameSpan.value);
+                     console.warn("Attribute input not found for skill:", detailSourceElement.dataset.baseSkill || detailSourceElement.value);
                 }
             }
 
-            const finalPercent = Math.min(100, basePercent + rank);
-            percentDisplay.value = finalPercent;
+            const finalPercent = Math.min(100, basePercent + rank); // Cap at 100%
+            percentDisplay.value = finalPercent; // Update the readonly display value
 
-            if (attribute && nameSpan.tagName === 'SPAN') {
+            // Update the text content of the span if it's visible and attribute-based
+            if (attribute && nameSpan && nameSpan.style.display !== 'none') {
                  const baseSkillName = nameSpan.dataset.baseSkill || attribute;
                  const attrInput = document.getElementById(attribute.toLowerCase());
                  const attrValue = attrInput ? (parseInt(attrInput.value) || 0) : 0; // Handle missing attribute input
                  const currentBase = attrValue * multiplier;
-                 nameSpan.textContent = `${baseSkillName} (${currentBase}%)`;
+                 nameSpan.textContent = `${baseSkillName} (${currentBase}%)`; // Show base % in brackets
+            } else if (nameSpan && nameSpan.style.display !== 'none' && !attribute) {
+                 // Update span text for non-attribute skills (like First Aid)
+                 const baseSkillName = nameSpan.dataset.baseSkill || "Skill";
+                 nameSpan.textContent = `${baseSkillName} (${basePercent}%)`;
             }
-             applySkillModifiers();
-             updateXpSpent();
+
+             applySkillModifiers(); // Re-apply Shift/Ctrl modifiers if active
+             updateXpSpent(); // Update total XP spent
              // Save is triggered by the input event listener on the rank input
         }
 
+
         function updateDynamicSkillLabel(inputElement) {
              if (!inputElement) return; // Add null check
+            // When the user types in a custom skill name, update its dataset for consistency
             inputElement.dataset.baseSkill = inputElement.value;
             const entry = inputElement.closest('.skill-entry');
             if (entry) {
                 const rankInput = entry.querySelector('.skill-rank-input');
-                if (rankInput) updateSkillPercentage(rankInput);
+                if (rankInput) updateSkillPercentage(rankInput); // Recalculate percentage
             }
              // Save is triggered by the input event listener on the name input
         }
 
         function updateAllSkillPercentages() {
+            // This function is called when STR/DEX/CON changes, recalculating all skills
             document.querySelectorAll('.skill-rank-input').forEach(updateSkillPercentage);
             // Save is triggered by the input event listener on STR/DEX/CON
         }
@@ -1454,18 +1604,21 @@
             if (!xpEarnedInput || !xpSpentInput) return;
 
             let totalSpent = 0;
-            document.querySelectorAll('.skill-rank-input').forEach(input => {
+            // Sum ranks from all skill types
+            document.querySelectorAll('.skill-entry .skill-rank-input').forEach(input => {
                 if (input) totalSpent += parseInt(input.value) || 0; // Add null check
             });
+            // Sum percentages from weapon skills
             document.querySelectorAll('.weapon-entry .skill-percent-input').forEach(input => {
                 if (input) totalSpent += parseInt(input.value) || 0; // Add null check
             });
 
             xpSpentInput.value = totalSpent;
             const earned = parseInt(xpEarnedInput.value) || 0;
+            // Update styling based on comparison
             xpSpentInput.classList.remove('xp-spent-over', 'xp-spent-equal', 'xp-spent-under');
             if (totalSpent > earned) xpSpentInput.classList.add('xp-spent-over');
-            else if (totalSpent === earned) xpSpentInput.classList.add('xp-spent-equal');
+            else if (totalSpent === earned && earned > 0) xpSpentInput.classList.add('xp-spent-equal'); // Only green if earned > 0
             else xpSpentInput.classList.add('xp-spent-under');
             // Save is triggered by the input event listener on XP Earned, skill ranks, or weapon %
         }
@@ -1482,13 +1635,13 @@
             if (dexPercent) dexPercent.value = `${Math.min(100, dex * 5)}%`;
             if (conPercent) conPercent.value = `${Math.min(100, con * 5)}%`;
 
-            updateAllSkillPercentages();
-            updateStrDamageModifiers();
-            applySkillModifiers();
+            updateAllSkillPercentages(); // Recalculate all skill % based on new attributes
+            updateStrDamageModifiers(); // Update weapon damage modifiers based on new STR
+            applySkillModifiers(); // Re-apply shift/ctrl modifiers
             // Save is triggered by the input event listener on STR/DEX/CON
         }
 
-        // --- Key Press Modifiers ---
+        // --- Key Press Modifiers (Shift/Ctrl for temporary skill adjustments) ---
         let isShiftPressed = false;
         let isCtrlPressed = false;
 
@@ -1497,13 +1650,17 @@
             document.querySelectorAll('.skill-entry').forEach(entry => {
                 const percentDisplay = entry.querySelector('.skill-percent-display');
                 const rankInput = entry.querySelector('.skill-rank-input');
-                const nameSpan = entry.querySelector('.skill-name-display') || entry.querySelector('.skill-name-input');
-                // Add checks for all elements
-                if (!percentDisplay || !rankInput || !nameSpan) return;
+                const nameSpan = entry.querySelector('.skill-name-display');
+                const nameInput = entry.querySelector('.skill-name-input');
+                // Choose the correct element for skill details based on visibility
+                const detailSourceElement = (nameSpan && nameSpan.style.display !== 'none') ? nameSpan : nameInput;
 
-                let basePercent = parseInt(nameSpan.dataset.basePercent) || 0;
-                const attribute = nameSpan.dataset.attribute;
-                const multiplier = parseInt(nameSpan.dataset.multiplier) || 1;
+                // Add checks for all necessary elements
+                if (!percentDisplay || !rankInput || !detailSourceElement) return;
+
+                let basePercent = parseInt(detailSourceElement.dataset.basePercent) || 0;
+                const attribute = detailSourceElement.dataset.attribute;
+                const multiplier = parseInt(detailSourceElement.dataset.multiplier) || 1;
                 if (attribute) {
                     const attrInput = document.getElementById(attribute.toLowerCase());
                     if (attrInput) { // Check attribute input exists
@@ -1511,17 +1668,18 @@
                     }
                 }
                 const rank = parseInt(rankInput.value) || 0;
-                let currentPercent = basePercent + rank;
+                let currentPercent = basePercent + rank; // Base calculation
 
-                percentDisplay.classList.remove('modifier-shift', 'modifier-ctrl');
+                percentDisplay.classList.remove('modifier-shift', 'modifier-ctrl'); // Reset styles
+                // Apply modifiers
                 if (isShiftPressed) {
-                    currentPercent = Math.min(100, currentPercent * 2);
+                    currentPercent = Math.min(100, currentPercent * 2); // Double, cap at 100
                     percentDisplay.classList.add('modifier-shift');
                 } else if (isCtrlPressed) {
-                    currentPercent = Math.ceil(currentPercent / 2);
+                    currentPercent = Math.ceil(currentPercent / 2); // Halve, round up
                     percentDisplay.classList.add('modifier-ctrl');
                 }
-                percentDisplay.value = currentPercent;
+                percentDisplay.value = Math.min(100, currentPercent); // Update display, ensure cap
             });
 
             // Apply to Characteristics
@@ -1532,36 +1690,48 @@
                 if (!percentDisplay || !charInput) return;
 
                 let baseValue = parseInt(charInput.value) || 0;
-                let currentPercent = Math.min(100, baseValue * 5);
+                let currentPercent = Math.min(100, baseValue * 5); // Base calculation
 
-                percentDisplay.classList.remove('modifier-shift', 'modifier-ctrl');
+                percentDisplay.classList.remove('modifier-shift', 'modifier-ctrl'); // Reset styles
+                 // Apply modifiers
                  if (isShiftPressed) {
-                    currentPercent = Math.min(100, currentPercent * 2);
+                    currentPercent = Math.min(100, currentPercent * 2); // Double, cap at 100
                     percentDisplay.classList.add('modifier-shift');
                 } else if (isCtrlPressed) {
-                    currentPercent = Math.ceil(currentPercent / 2);
+                    currentPercent = Math.ceil(currentPercent / 2); // Halve, round up
                     percentDisplay.classList.add('modifier-ctrl');
                 }
-                percentDisplay.value = `${currentPercent}%`;
+                percentDisplay.value = `${Math.min(100, currentPercent)}%`; // Update display, ensure cap
             });
         }
 
 
         document.addEventListener('keydown', (event) => {
+            // Ignore modifier keys if focus is inside an input/textarea
             if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+
             let modifierChanged = false;
             if (event.key === 'Shift' && !isShiftPressed) { isShiftPressed = true; modifierChanged = true; }
+            // Use event.ctrlKey for better cross-platform compatibility
             if (event.key === 'Control' && !isCtrlPressed) { isCtrlPressed = true; modifierChanged = true; }
-            if (modifierChanged) applySkillModifiers();
+
+            if (modifierChanged) {
+                 event.preventDefault(); // Prevent default browser actions for Shift/Ctrl if needed
+                 applySkillModifiers();
+            }
         });
 
         document.addEventListener('keyup', (event) => {
              let modifierChanged = false;
             if (event.key === 'Shift') { isShiftPressed = false; modifierChanged = true; }
             if (event.key === 'Control') { isCtrlPressed = false; modifierChanged = true; }
-             if (modifierChanged) applySkillModifiers();
+
+             if (modifierChanged) {
+                 applySkillModifiers(); // Revert to base values when key is released
+             }
         });
 
+        // Reset modifiers if the window loses focus
         window.addEventListener('blur', () => {
             if (isShiftPressed || isCtrlPressed) {
                 isShiftPressed = false; isCtrlPressed = false; applySkillModifiers();
@@ -1574,6 +1744,7 @@
             if (!selectElement || !xpInput) return; // Add null checks
 
             const selectedClass = selectElement.value;
+            // Update placeholder text based on class selection
             if (selectedClass === 'Gentleman') xpInput.placeholder = "150 (100+50 Knowledge)";
             else if (selectedClass === 'Noble') xpInput.placeholder = "200 (100+100 Knowledge)";
             else xpInput.placeholder = "100";
@@ -1582,14 +1753,14 @@
 
         // --- Export/Import Functions ---
         function gatherSheetData() {
-            const data = { version: 3, sections: {} }; // Keep version consistent
+            const data = { version: 3, sections: {} }; // Keep version consistent or increment if structure changes significantly
 
             // Helper function to safely get element value
             const getVal = (id) => document.getElementById(id)?.value || '';
             const getTextAreaVal = (selector) => document.querySelector(selector)?.value || '';
             const getSelectVal = (id) => document.getElementById(id)?.value || 'Commoner'; // Default class
 
-            // Header
+            // --- Header ---
             data.header = {
                 name: getVal('char-name'),
                 class: getSelectVal('char-class-select'),
@@ -1598,35 +1769,40 @@
                 goal: getVal('char-goal')
             };
 
-            // Characteristics
+            // --- Characteristics ---
             data.characteristics = {
                 str: getVal('str') || '0',
                 dex: getVal('dex') || '0',
                 con: getVal('con') || '0'
             };
 
-            // Description & Flaws
+            // --- Description & Flaws ---
             data.description = {
                 desc: getTextAreaVal('#char-desc'),
                 flaws: getTextAreaVal('#char-flaws')
             };
 
-            // Skills
+            // --- Skills (Core, Knowledge, Craft/Art) ---
             data.skills = { core: [], knowledge: [], craftArt: [] };
             document.querySelectorAll('#skills-container .skill-entry').forEach(entry => {
                 const nameSpan = entry.querySelector('.skill-name-display');
                 const nameInput = entry.querySelector('.skill-name-input');
                 const rankInput = entry.querySelector('.skill-rank-input');
-                if (rankInput) { // Only proceed if rank input exists
+                const detailSource = (nameSpan && nameSpan.style.display !== 'none') ? nameSpan : nameInput;
+
+                if (rankInput && detailSource) { // Need rank and a source for skill details
                     const skillData = {
                         rank: rankInput.value || '0',
-                        name: nameInput ? nameInput.value : undefined,
-                        baseSkill: nameSpan ? nameSpan.dataset.baseSkill : (nameInput ? nameInput.dataset.baseSkill : undefined),
-                        basePercent: nameSpan ? nameSpan.dataset.basePercent : (nameInput ? nameInput.dataset.basePercent : undefined), // Keep undefined if not set
-                        attribute: nameSpan?.dataset.attribute,
-                        multiplier: nameSpan?.dataset.multiplier,
+                        // Save either baseSkill (predefined) or name (custom)
+                        baseSkill: (detailSource === nameSpan) ? detailSource.dataset.baseSkill : undefined,
+                        name: (detailSource === nameInput) ? detailSource.value : undefined,
+                        // Include basePercent only if it exists on the element
+                        basePercent: detailSource.dataset.basePercent ? detailSource.dataset.basePercent : undefined,
+                        attribute: detailSource.dataset.attribute, // Include if exists
+                        multiplier: detailSource.dataset.multiplier, // Include if exists
                     };
-                    Object.keys(skillData).forEach(key => skillData[key] === undefined && delete skillData[key]); // Clean undefined
+                    // Clean up undefined properties before pushing
+                    Object.keys(skillData).forEach(key => skillData[key] === undefined && delete skillData[key]);
                     data.skills.core.push(skillData);
                 }
             });
@@ -1634,44 +1810,52 @@
                  const nameSpan = entry.querySelector('.skill-name-display');
                  const nameInput = entry.querySelector('.skill-name-input');
                  const rankInput = entry.querySelector('.skill-rank-input');
-                 if (rankInput) {
+                 const detailSource = (nameSpan && nameSpan.style.display !== 'none') ? nameSpan : nameInput;
+
+                 if (rankInput && detailSource) {
                      const skillData = {
                          rank: rankInput.value || '0',
-                         name: nameInput ? nameInput.value : undefined,
-                         baseSkill: nameSpan ? nameSpan.dataset.baseSkill : (nameInput ? nameInput.dataset.baseSkill : undefined),
-                         basePercent: nameSpan ? nameSpan.dataset.basePercent : (nameInput ? nameInput.dataset.basePercent : undefined),
+                         baseSkill: (detailSource === nameSpan) ? detailSource.dataset.baseSkill : undefined,
+                         name: (detailSource === nameInput) ? detailSource.value : undefined,
+                         basePercent: detailSource.dataset.basePercent ? detailSource.dataset.basePercent : undefined,
+                         attribute: detailSource.dataset.attribute,
+                         multiplier: detailSource.dataset.multiplier,
                      };
                      Object.keys(skillData).forEach(key => skillData[key] === undefined && delete skillData[key]);
                      data.skills.knowledge.push(skillData);
                  }
              });
+             // Craft/Art always uses input
              document.querySelectorAll('#craft-art-container .skill-entry').forEach(entry => {
                  const nameInput = entry.querySelector('.skill-name-input');
                  const rankInput = entry.querySelector('.skill-rank-input');
-                 if (nameInput && rankInput) { // Craft/Art always has nameInput
+                 if (nameInput && rankInput) {
                      const skillData = {
                          rank: rankInput.value || '0',
-                         name: nameInput.value || '',
+                         name: nameInput.value || '', // Always save the name for craft/art
                          basePercent: nameInput.dataset.basePercent || '0', // Default basePercent if missing
                      };
+                      Object.keys(skillData).forEach(key => skillData[key] === undefined && delete skillData[key]);
                      data.skills.craftArt.push(skillData);
                  }
              });
 
-            // Combat Details
+            // --- Combat Details (Skills, Weapons, Hit Locations) ---
             data.combat = { skills: [], meleeWeapons: [], rangedWeapons: [], hitLocations: {} };
              document.querySelectorAll('#combat-skills-display .skill-entry').forEach(entry => {
                  const nameSpan = entry.querySelector('.skill-name-display');
                  const nameInput = entry.querySelector('.skill-name-input');
                  const rankInput = entry.querySelector('.skill-rank-input');
-                 if (rankInput) {
+                 const detailSource = (nameSpan && nameSpan.style.display !== 'none') ? nameSpan : nameInput;
+
+                 if (rankInput && detailSource) {
                      const skillData = {
                          rank: rankInput.value || '0',
-                         name: nameInput ? nameInput.value : undefined,
-                         baseSkill: nameSpan ? nameSpan.dataset.baseSkill : (nameInput ? nameInput.dataset.baseSkill : undefined),
-                         basePercent: nameSpan ? nameSpan.dataset.basePercent : (nameInput ? nameInput.dataset.basePercent : undefined),
-                         attribute: nameSpan?.dataset.attribute,
-                         multiplier: nameSpan?.dataset.multiplier,
+                         baseSkill: (detailSource === nameSpan) ? detailSource.dataset.baseSkill : undefined,
+                         name: (detailSource === nameInput) ? detailSource.value : undefined,
+                         basePercent: detailSource.dataset.basePercent ? detailSource.dataset.basePercent : undefined,
+                         attribute: detailSource.dataset.attribute,
+                         multiplier: detailSource.dataset.multiplier,
                      };
                      Object.keys(skillData).forEach(key => skillData[key] === undefined && delete skillData[key]);
                      data.combat.skills.push(skillData);
@@ -1695,18 +1879,19 @@
             });
             document.querySelectorAll('.hit-location').forEach(loc => {
                 const locId = loc.dataset.loc;
-                const apInputs = loc.querySelectorAll('.hp-ap-input');
-                const hpInput = loc.querySelector('.hp-current');
+                const apInputs = loc.querySelectorAll('.hp-ap-input'); // Gets both AP current/max
+                const hpInput = loc.querySelector('.hp-current'); // Gets current HP input
                 if (locId && apInputs.length === 2 && hpInput) {
                     data.combat.hitLocations[locId] = {
                         apCurrent: apInputs[0].value || '0',
                         apMax: apInputs[1].value || '0',
                         hpCurrent: hpInput.value || '0'
+                        // Max HP is calculated from CON, no need to save span value
                     };
                 }
             });
 
-            // Inventory
+            // --- Inventory ---
             data.inventory = { backpack: [], satchel: '', coin: '0', dynamic: [] };
             document.querySelectorAll('#inventory .sub-section:first-of-type input[placeholder^="Slot"]').forEach(input => {
                 data.inventory.backpack.push(input.value || '');
@@ -1717,7 +1902,7 @@
                 const header = section.querySelector('.section-header');
                 const dynamicSectionData = {
                     title: section.querySelector('.section-title-text')?.textContent || '',
-                    color: header?.style.backgroundColor || '', // Get inline style
+                    color: header?.style.backgroundColor || '', // Get inline style color
                     items: []
                 };
                 section.querySelectorAll('.dynamic-entry input[placeholder="Item Slot"]').forEach(itemInput => {
@@ -1726,31 +1911,45 @@
                 data.inventory.dynamic.push(dynamicSectionData);
             });
 
-            // Powers
+            // --- Powers ---
             data.powers = [];
              document.querySelectorAll('#powers-container .dynamic-entry input[placeholder="Power or Note"]').forEach(input => {
                  data.powers.push({ text: input.value || '' });
              });
 
-            // Notes
+            // --- Notes ---
             data.notes = getTextAreaVal('#notes-container textarea');
 
-            // Section Customizations
+            // --- Section Customizations (Title & Color) ---
              data.sectionCustomizations = {};
              document.querySelectorAll('.styled-section[data-section-id]').forEach(section => {
                  const sectionId = section.dataset.sectionId;
                  const titleText = section.querySelector('.section-title-text');
                  const header = section.querySelector('.section-header');
                  if (sectionId && titleText && header) {
-                     const defaultTitle = section.querySelector('.section-title-input')?.getAttribute('value');
-                     const defaultColor = getComputedStyle(document.documentElement).getPropertyValue('--default-section-bg').trim();
+                     const defaultTitle = section.querySelector('.section-title-input')?.getAttribute('value'); // Original title from HTML
+                     const defaultColor = getComputedStyle(document.documentElement).getPropertyValue('--default-section-bg').trim(); // Default CSS variable color
                      const currentTitle = titleText.textContent;
-                     const currentColor = header.style.backgroundColor;
+                     const currentColor = header.style.backgroundColor; // Current inline style color
+
                      let customization = {};
                      let hasCustomization = false;
-                     if (defaultTitle && currentTitle !== defaultTitle) { customization.title = currentTitle; hasCustomization = true; }
-                     if (currentColor && currentColor !== defaultColor && currentColor !== '') { customization.color = currentColor; hasCustomization = true; } // Only save if explicitly set and different
-                     if (hasCustomization) data.sectionCustomizations[sectionId] = customization;
+                     // Save title only if it's different from the default HTML value
+                     if (defaultTitle && currentTitle !== defaultTitle) {
+                          customization.title = currentTitle;
+                          hasCustomization = true;
+                     }
+                     // Save color only if it has an inline style set AND it's different from the CSS variable default
+                     // Check for rgb format which might be returned by computed style vs hex/named color set inline
+                     const isColorSetAndDifferent = currentColor && currentColor !== defaultColor && header.style.backgroundColor !== '';
+                     if (isColorSetAndDifferent) {
+                          customization.color = currentColor;
+                          hasCustomization = true;
+                     }
+                     // Only add to customizations if title or color was actually changed
+                     if (hasCustomization) {
+                         data.sectionCustomizations[sectionId] = customization;
+                     }
                  }
              });
 
@@ -1761,18 +1960,18 @@
         function exportSheetData() {
             try {
                 const sheetData = gatherSheetData();
-                const jsonData = JSON.stringify(sheetData, null, 2);
+                const jsonData = JSON.stringify(sheetData, null, 2); // Pretty print JSON
                 const blob = new Blob([jsonData], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 const charName = document.getElementById('char-name')?.value || 'character';
-                const filename = `${charName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_winedark_sheet.json`;
+                const filename = `${charName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_winedark_sheet.json`; // Sanitize filename
                 link.href = url;
                 link.download = filename;
                 document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
+                link.click(); // Trigger download
+                document.body.removeChild(link); // Clean up link
+                URL.revokeObjectURL(url); // Release object URL
                 showDicePopup("Sheet data exported successfully!");
             } catch (error) {
                 console.error("Error exporting sheet data:", error);
@@ -1788,23 +1987,32 @@
                 try {
                     const jsonData = e.target.result;
                     const data = JSON.parse(jsonData);
+                    // Basic validation
                     if (typeof data !== 'object' || data === null || !data.version) {
-                         throw new Error("Invalid file format.");
+                         throw new Error("Invalid file format or missing version.");
                     }
-                    console.log("Importing data:", data); // DEBUGGING
+                    // Optional: Add more specific version checking if needed
+                    // if (data.version < 3) {
+                    //     throw new Error("Outdated file version. Please update the sheet first.");
+                    // }
+                    console.log("Importing data version:", data.version); // DEBUGGING
+
+                    // --- IMPORTANT: Reset sheet state *before* populating ---
                     setDefaultSheetState(false); // Reset without recalc
-                    populateSheetData(data); // Populate DOM
+                    populateSheetData(data); // Populate DOM from imported data
+
                     // Recalculate everything *after* populating
                     updateHpDisplay();
                     updatePercentages();
                     updateXpSpent();
-                    saveSheetToLocalStorage(); // Save imported data
+
+                    saveSheetToLocalStorage(); // Save the newly imported data to local storage
                     showDicePopup("Sheet data imported successfully!");
                 } catch (error) {
                     console.error("Error importing sheet data:", error); // DEBUGGING
                     showDicePopup(`Error importing file: ${error.message}. See console.`);
                 } finally {
-                     event.target.value = null; // Reset file input
+                     event.target.value = null; // Reset file input to allow importing the same file again
                 }
             };
             reader.onerror = function(e) {
@@ -1816,7 +2024,7 @@
         }
 
        function populateSheetData(data) {
-            console.log("Populating sheet data..."); // DEBUGGING
+            // console.log("Populating sheet data from saved/imported source..."); // DEBUGGING
             // Helper to safely set value
             const setVal = (id, value) => {
                 const el = document.getElementById(id);
@@ -1840,7 +2048,7 @@
             if (data.header) {
                 setVal('char-name', data.header.name);
                 setSelectVal('char-class-select', data.header.class || 'Commoner');
-                handleClassChange(document.getElementById('char-class-select'));
+                handleClassChange(document.getElementById('char-class-select')); // Update placeholder based on class
                 setVal('char-profession', data.header.profession);
                 setVal('char-experience', data.header.xpEarned || '0');
                 setVal('char-goal', data.header.goal);
@@ -1859,57 +2067,36 @@
                 setTextAreaVal('#char-flaws', data.description.flaws);
             }
 
-            // --- Populate Skills ---
+            // --- Populate Skills (Rebuild from saved data) ---
+            // Assumes setDefaultSheetState(false) has already cleared the containers
             if (data.skills) {
-                const populatedBaseSkills = { core: new Set(), knowledge: new Set(), combat: new Set() };
-
-                // Add default structure first, applying saved ranks
-                defaultSheetStructure.skills.core.forEach(skillDef => {
-                    const savedSkill = data.skills.core?.find(s => s.baseSkill === skillDef.baseSkill);
-                    addEntry('skills-container', skillTemplate, { ...skillDef, rank: savedSkill?.rank || '0' });
-                    populatedBaseSkills.core.add(skillDef.baseSkill);
-                });
-                defaultSheetStructure.skills.knowledge.forEach(skillDef => {
-                    const savedSkill = data.skills.knowledge?.find(s => s.baseSkill === skillDef.baseSkill);
-                    addEntry('knowledge-container', knowledgeTemplate, { ...skillDef, name: skillDef.baseSkill, rank: savedSkill?.rank || '0' });
-                     populatedBaseSkills.knowledge.add(skillDef.baseSkill);
-                });
-                 defaultSheetStructure.combat.skills.forEach(skillDef => {
-                    const savedSkill = data.combat.skills?.find(s => s.baseSkill === skillDef.baseSkill);
-                    addEntry('combat-skills-display', combatStatTemplate, { ...skillDef, name: skillDef.baseSkill, rank: savedSkill?.rank || '0' });
-                    populatedBaseSkills.combat.add(skillDef.baseSkill);
-                });
-
-                // Add any extra skills from saved data that weren't part of the default structure
-                data.skills.core?.filter(s => s.name && !populatedBaseSkills.core.has(s.name))
-                    .forEach(skillData => addEntry('skills-container', skillTemplate, skillData));
-                data.skills.knowledge?.filter(s => s.name && !populatedBaseSkills.knowledge.has(s.name))
-                    .forEach(skillData => addEntry('knowledge-container', knowledgeTemplate, skillData));
-                data.combat.skills?.filter(s => s.name && !populatedBaseSkills.combat.has(s.name))
-                    .forEach(skillData => addEntry('combat-skills-display', combatStatTemplate, skillData));
-
-                // Craft/Art Skills (Always dynamic)
+                data.skills.core?.forEach(skillData => addEntry('skills-container', skillTemplate, skillData));
+                data.skills.knowledge?.forEach(skillData => addEntry('knowledge-container', knowledgeTemplate, skillData));
                 data.skills.craftArt?.forEach(skillData => addEntry('craft-art-container', craftArtTemplate, skillData));
             }
 
-            // --- Populate Combat Details (Weapons & Hit Locations) ---
+            // --- Populate Combat Details (Skills, Weapons & Hit Locations) ---
             if (data.combat) {
-                // Weapons
+                // Combat Skills (Rebuild from saved data)
+                data.combat.skills?.forEach(skillData => addEntry('combat-skills-display', combatStatTemplate, skillData));
+
+                // Weapons (Rebuild from saved data)
                 data.combat.meleeWeapons?.forEach(weaponData => addEntry('melee-weapons-container', meleeWeaponTemplate, weaponData));
                 data.combat.rangedWeapons?.forEach(weaponData => addEntry('ranged-weapons-container', rangedWeaponTemplate, weaponData));
 
-                // Hit Locations
+                // Hit Locations (Update existing elements)
                 if (data.combat.hitLocations) {
                     Object.keys(data.combat.hitLocations).forEach(locId => {
                         const locElement = document.querySelector(`.hit-location[data-loc="${locId}"]`);
                         const locData = data.combat.hitLocations[locId];
                         if (locElement && locData) {
-                            const apInputs = locElement.querySelectorAll('.hp-ap-input');
-                            const hpInput = locElement.querySelector('.hp-current');
+                            const apInputs = locElement.querySelectorAll('.hp-ap-input'); // Gets both AP current/max
+                            const hpInput = locElement.querySelector('.hp-current'); // Gets current HP input
                             if (apInputs.length === 2 && hpInput) {
                                 apInputs[0].value = locData.apCurrent || '0';
                                 apInputs[1].value = locData.apMax || '0';
                                 hpInput.value = locData.hpCurrent || '0';
+                                // Max HP span will be updated by updateHpDisplay later
                             }
                         }
                     });
@@ -1918,40 +2105,51 @@
 
             // --- Populate Inventory ---
             if (data.inventory) {
+                // Backpack (Update existing inputs)
                 const backpackInputs = document.querySelectorAll('#inventory .sub-section:first-of-type input[placeholder^="Slot"]');
                 data.inventory.backpack?.forEach((item, index) => {
                     if (backpackInputs[index]) backpackInputs[index].value = item || '';
                 });
+                // Satchel & Coin
                 setTextAreaVal('#inventory textarea[placeholder="List satchel items..."]', data.inventory.satchel);
                 setVal('coin', data.inventory.coin || '0');
+                // Dynamic Containers (Rebuild from saved data)
                 data.inventory.dynamic?.forEach(sectionData => addInventorySection(sectionData));
             }
 
-            // --- Populate Powers ---
+            // --- Populate Powers (Rebuild from saved data) ---
             data.powers?.forEach(powerData => addEntry('powers-container', powerTemplate, powerData));
 
             // --- Populate Notes ---
             setTextAreaVal('#notes-container textarea', data.notes);
 
-            // --- Populate Section Customizations ---
+            // --- Populate Section Customizations (Titles & Colors) ---
             if (data.sectionCustomizations) {
                 Object.keys(data.sectionCustomizations).forEach(sectionId => {
                     const section = document.querySelector(`.styled-section[data-section-id="${sectionId}"]`);
                     const customData = data.sectionCustomizations[sectionId];
                     if (section && customData) {
                         const titleText = section.querySelector('.section-title-text');
-                        const titleInput = section.querySelector('.section-title-input');
+                        const titleInput = section.querySelector('.section-title-input'); // For setting value if needed
                         const header = section.querySelector('.section-header');
-                        const colorInput = section.querySelector('.color-picker-input');
+                        const colorInput = section.querySelector('.color-picker-input'); // The actual <input type="color">
 
-                        if (titleText && customData.title) titleText.textContent = customData.title;
-                        if (titleInput && customData.title) titleInput.value = customData.title;
-                        if (header && customData.color) header.style.backgroundColor = customData.color;
-                        if (colorInput && customData.color) colorInput.value = customData.color;
+                        // Apply title customization
+                        if (titleText && customData.title) {
+                             titleText.textContent = customData.title;
+                             // Also update the hidden input's value for consistency if editing is toggled
+                             if (titleInput) titleInput.value = customData.title;
+                        }
+                        // Apply color customization
+                        if (header && customData.color) {
+                             header.style.backgroundColor = customData.color; // Apply to header background
+                             // Also update the color picker's value
+                             if (colorInput) colorInput.value = customData.color;
+                        }
                     }
                 });
             }
-            console.log("Finished populating sheet data."); // DEBUGGING
+            // console.log("Finished populating sheet data."); // DEBUGGING
         }
 
 
@@ -1960,118 +2158,154 @@
             const confirmed = confirm("Warning: Creating a new character will delete the current one from this browser. Export your character first if you want to save it permanently. Continue?");
             if (confirmed) {
                 localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear saved data
-                setDefaultSheetState(); // Reset to defaults and recalculate
+                setDefaultSheetState(true); // Reset to defaults and recalculate
                 showDicePopup("Character sheet reset.");
             }
         }
 
         // --- Set Default Sheet State ---
         function setDefaultSheetState(updateCalculations = true) {
-            console.log("Setting default sheet state..."); // DEBUGGING
-            // Clear dynamic entries first
-            document.getElementById('skills-container').innerHTML = '';
-            document.getElementById('knowledge-container').innerHTML = '';
-            document.getElementById('craft-art-container').innerHTML = '';
-            document.getElementById('combat-skills-display').innerHTML = '';
-            document.getElementById('melee-weapons-container').innerHTML = '';
-            document.getElementById('ranged-weapons-container').innerHTML = '';
-            document.getElementById('powers-container').innerHTML = '';
-            document.getElementById('dynamic-inventory-container').innerHTML = '';
-            document.getElementById('dynamic-stats-container').innerHTML = '';
+            // console.log("Setting default sheet state..."); // DEBUGGING
 
-            // Reset Header fields
+            // --- Clear Dynamic Content Containers ---
+            const containersToClear = [
+                'skills-container', 'knowledge-container', 'craft-art-container', // Skills
+                'combat-skills-display', 'melee-weapons-container', 'ranged-weapons-container', // Combat
+                'powers-container', // Powers
+                'dynamic-inventory-container', // Dynamic Inventory Sections
+                'dynamic-stats-container' // Placeholder if used
+            ];
+            containersToClear.forEach(id => {
+                const container = document.getElementById(id);
+                if (container) {
+                    container.innerHTML = ''; // Clear the container
+                } else {
+                    console.warn(`Container ID not found during reset: ${id}`);
+                }
+            });
+
+            // --- Reset Header fields ---
             const fieldsToReset = ['char-name', 'char-profession', 'char-goal'];
             fieldsToReset.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.value = '';
             });
-            const numsToReset = {'char-experience': '0', 'coin': '10'};
+            const numsToReset = {'char-experience': '0', 'coin': '10'}; // Default values
             Object.keys(numsToReset).forEach(id => {
                  const el = document.getElementById(id);
                  if (el) el.value = numsToReset[id];
             });
             const classSelect = document.getElementById('char-class-select');
-            if (classSelect) classSelect.value = 'Commoner';
-            handleClassChange(classSelect); // Update placeholder
+            if (classSelect) {
+                 classSelect.value = 'Commoner'; // Default class
+                 handleClassChange(classSelect); // Update placeholder
+            }
 
-            // Reset Characteristics
+            // --- Reset Characteristics ---
             const charsToReset = {'str': '0', 'dex': '0', 'con': '0'};
              Object.keys(charsToReset).forEach(id => {
                  const el = document.getElementById(id);
                  if (el) el.value = charsToReset[id];
             });
 
-            // Reset Description & Flaws
+            // --- Reset Description & Flaws & Notes ---
             const textAreasToReset = ['#char-desc', '#char-flaws', '#notes-container textarea'];
             textAreasToReset.forEach(selector => {
                  const el = document.querySelector(selector);
                  if (el) {
                      el.value = '';
-                     autoExpandTextarea(el);
+                     autoExpandTextarea(el); // Reset height
                  }
             });
+
+            // --- Reset Static Inventory (Backpack/Satchel) ---
              const backpackSlots = document.querySelectorAll('#inventory .sub-section:first-of-type input[placeholder^="Slot"]');
              backpackSlots.forEach(input => { if (input) input.value = ''; });
              const satchel = document.querySelector('#inventory textarea[placeholder="List satchel items..."]');
-             if (satchel) satchel.value = '';
+             if (satchel) {
+                 satchel.value = '';
+                 autoExpandTextarea(satchel); // Reset height
+             }
 
 
-            // Reset Skills (populate defaults using addEntry to ensure consistency)
-            defaultSheetStructure.skills.core.forEach(skillDef => addEntry('skills-container', skillTemplate, skillDef));
-            defaultSheetStructure.skills.knowledge.forEach(skillDef => addEntry('knowledge-container', knowledgeTemplate, { ...skillDef, name: skillDef.baseSkill }));
-            defaultSheetStructure.combat.skills.forEach(skillDef => addEntry('combat-skills-display', combatStatTemplate, { ...skillDef, name: skillDef.baseSkill }));
+            // --- Populate Default Skills (Core, Knowledge, Combat) ---
+            // Add default skills *only* when resetting the sheet completely
+            if (updateCalculations) { // Only add defaults if we are doing a full reset (not just clearing for load)
+                defaultSheetStructure.skills.core.forEach(skillDef => addEntry('skills-container', skillTemplate, { ...skillDef, rank: '0' }));
+                defaultSheetStructure.skills.knowledge.forEach(skillDef => addEntry('knowledge-container', knowledgeTemplate, { ...skillDef, rank: '0' }));
+                defaultSheetStructure.combat.skills.forEach(skillDef => addEntry('combat-skills-display', combatStatTemplate, { ...skillDef, rank: '0' }));
+            }
 
-            // Reset Hit Locations (AP/HP)
+
+            // --- Reset Hit Locations (AP/HP) ---
             document.querySelectorAll('.hit-location').forEach(loc => {
                 const apInputs = loc.querySelectorAll('.hp-ap-input');
                 const hpInput = loc.querySelector('.hp-current');
-                if (apInputs.length === 2) { apInputs[0].value = '0'; apInputs[1].value = '0'; }
-                if (hpInput) { hpInput.value = '0'; hpInput.defaultValue = '0'; }
+                const hpMaxSpan = loc.querySelector('.hp-max');
+                // Reset AP inputs
+                if (apInputs.length === 2) {
+                     apInputs[0].value = '0'; // Current AP
+                     apInputs[1].value = '0'; // Max AP
+                }
+                // Reset HP input and max span
+                if (hpInput) hpInput.value = '0';
+                if (hpMaxSpan) hpMaxSpan.textContent = '0';
             });
 
-            // Reset Section Customizations (Titles & Colors)
+            // --- Reset Section Customizations (Titles & Colors) ---
             const defaultColor = getComputedStyle(document.documentElement).getPropertyValue('--default-section-bg').trim();
             document.querySelectorAll('.styled-section[data-section-id]').forEach(section => {
                  const titleText = section.querySelector('.section-title-text');
                  const titleInput = section.querySelector('.section-title-input');
                  const header = section.querySelector('.section-header');
                  const colorInput = section.querySelector('.color-picker-input');
-                 const defaultTitle = titleInput?.getAttribute('value');
+                 const defaultTitle = titleInput?.getAttribute('value'); // Get original title from HTML attribute
 
+                 // Reset title
                  if (titleText && defaultTitle) titleText.textContent = defaultTitle;
-                 if (titleInput && defaultTitle) titleInput.value = defaultTitle;
-                 if (header) header.style.backgroundColor = ''; // Reset inline style
-                 if (colorInput) colorInput.value = defaultColor; // Reset color picker
+                 if (titleInput && defaultTitle) titleInput.value = defaultTitle; // Reset hidden input too
+                 // Reset color
+                 if (header) header.style.backgroundColor = ''; // Remove inline style to revert to CSS default
+                 if (colorInput) colorInput.value = defaultColor; // Reset color picker value (might need conversion if defaultColor isn't hex)
             });
 
-            // Recalculate derived values if requested
+            // --- Recalculate derived values if requested ---
             if (updateCalculations) {
-                console.log("Recalculating after setting default state..."); // DEBUGGING
-                updateHpDisplay();
-                updatePercentages();
-                updateXpSpent();
-                 console.log("Recalculations complete after default state."); // DEBUGGING
+                // console.log("Recalculating after setting default state..."); // DEBUGGING
+                updateHpDisplay(); // Recalculate HP based on default CON(0)
+                updatePercentages(); // Recalculate percentages based on default STR/DEX/CON(0) and default skill ranks(0)
+                updateXpSpent(); // Recalculate XP spent (should be 0)
+                 // console.log("Recalculations complete after default state."); // DEBUGGING
             }
-             // No save needed here
-             console.log("Finished setting default state."); // DEBUGGING
+             // No save needed here, as this is usually followed by loading or is a manual reset
+             // console.log("Finished setting default state."); // DEBUGGING
         }
 
 
         // --- Initial Setup on Page Load ---
         document.addEventListener('DOMContentLoaded', () => {
-            console.log("DOM Content Loaded. Initializing sheet..."); // DEBUGGING
-            // Load saved data or set defaults. Calculations happen inside loadSheetFromLocalStorage if successful, or after setting default state.
+            // console.log("DOM Content Loaded. Initializing sheet..."); // DEBUGGING
+
+            // Attempt to load saved data. If successful, it populates and calculates.
+            // If it fails or no data exists, it calls setDefaultSheetState(true) to set defaults and calculate.
             loadSheetFromLocalStorage();
 
             // Add event listener to the main container for inputs/changes to trigger debounced save
             const sheetContainer = document.getElementById('character-sheet-container');
             if (sheetContainer) {
+                // Use event delegation for better performance
                 sheetContainer.addEventListener('input', (event) => {
+                    // Trigger save for relevant input types
                     if (['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) {
                         // console.log('Input event triggered save for:', event.target.id || event.target.placeholder); // DEBUGGING
                         debouncedSave();
                     }
+                    // Auto-expand textareas on input
+                    if (event.target.tagName === 'TEXTAREA' && event.target.classList.contains('auto-expand')) {
+                        autoExpandTextarea(event.target);
+                    }
                 });
+                 // Listen for changes specifically on color pickers
                  sheetContainer.addEventListener('change', (event) => {
                      if (event.target.type === 'color') {
                         // console.log('Change event triggered save for color picker'); // DEBUGGING
@@ -2086,15 +2320,12 @@
             // Initialize auto-expand for any existing textareas (important after loading data)
             document.querySelectorAll('textarea.auto-expand').forEach(autoExpandTextarea);
 
-             // Add click listener to dice popup
+             // Add click listener to dice popup to close it
              if(dicePopup) {
-                 dicePopup.addEventListener('click', () => {
-                     dicePopup.style.display = 'none';
-                     currentRoller = null;
-                 });
+                 dicePopup.addEventListener('click', closeDicePopup);
              }
 
-            console.log("Sheet initialization complete."); // DEBUGGING
+            // console.log("Sheet initialization complete."); // DEBUGGING
         });
 
     </script>
