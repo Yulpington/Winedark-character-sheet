@@ -409,12 +409,23 @@
             position: absolute; border: 1px solid #aaa; padding: 0.3rem; border-radius: 4px;
             text-align: center; font-size: 0.75rem; background-color: rgba(255, 255, 255, 0.75); /* Semi-transparent background */
             box-shadow: 0 1px 3px rgba(0,0,0,0.1); width: 18%; min-width: 60px; line-height: 1.2;
+            display: flex; /* Use flexbox for vertical layout */
+            flex-direction: column; /* Stack children vertically */
+            gap: 0.1rem; /* Space between elements */
         }
         .hit-location label { font-weight: bold; display: block; margin-bottom: 0.1rem; font-size: 0.7rem; }
         .hp-ap-input { width: 30px; text-align: center; margin: 0 1px; font-size: 0.7rem; padding: 0.1rem; }
-        .stat-line { display: flex; align-items: center; justify-content: center; gap: 0.1rem; margin-bottom: 0.1rem;}
+        .stat-line { display: flex; align-items: center; justify-content: center; gap: 0.1rem; /* Removed margin-bottom */ }
         .stat-line label { margin-bottom: 0; font-weight: normal; font-size: 0.7rem; }
         .stat-line span { font-size: 0.7rem; }
+        /* Style for the new item input */
+        .hit-location-item-input {
+            width: 100%; /* Take full width */
+            font-size: 0.7rem;
+            padding: 0.1rem 0.2rem; /* Adjust padding */
+            margin-top: 0.1rem; /* Space above item input */
+            box-sizing: border-box; /* Include padding in width */
+        }
 
         /* Positioning for hit location boxes */
         .hit-location[data-loc="head"] { top: 3%; left: 41%; }
@@ -470,6 +481,7 @@
              .skill-entry { flex-wrap: wrap; } /* Allow skill elements to wrap on small screens */
              .skill-name-display { width: 100%; margin-right: 0; margin-bottom: 0.25rem; } /* Skill name full width */
              .characteristic-entry { grid-template-columns: auto 1fr 1fr auto; } /* Adjust characteristic layout */
+             .hit-location-item-input { font-size: 0.6rem; } /* Smaller item input font on small screens */
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -586,13 +598,48 @@
                  <div class="sub-section">
                       <h4 class="font-semibold mb-1 text-sm flex justify-between items-center"> <span>Hit Locations</span></h4>
                       <div class="section-content hit-location-content p-0">
-                          <div class="hit-location" data-loc="head"> <label>Head</label> <div class="stat-line">AP:<input type="number" value="0" class="hp-ap-input">/<input type="number" value="0" class="hp-ap-input"></div> <div class="stat-line">HP:<input type="number" value="0" class="hp-ap-input hp-current" data-location="head">/<span class="hp-max" data-location="head">0</span></div> </div>
-                          <div class="hit-location" data-loc="l-arm"> <label>L. Arm</label> <div class="stat-line">AP:<input type="number" value="0" class="hp-ap-input">/<input type="number" value="0" class="hp-ap-input"></div> <div class="stat-line">HP:<input type="number" value="0" class="hp-ap-input hp-current" data-location="arm">/<span class="hp-max" data-location="arm">0</span></div> </div>
-                          <div class="hit-location" data-loc="chest"> <label>Chest</label> <div class="stat-line">AP:<input type="number" value="0" class="hp-ap-input">/<input type="number" value="0" class="hp-ap-input"></div> <div class="stat-line">HP:<input type="number" value="0" class="hp-ap-input hp-current" data-location="chest">/<span class="hp-max" data-location="chest">0</span></div> </div>
-                          <div class="hit-location" data-loc="r-arm"> <label>R. Arm</label> <div class="stat-line">AP:<input type="number" value="0" class="hp-ap-input">/<input type="number" value="0" class="hp-ap-input"></div> <div class="stat-line">HP:<input type="number" value="0" class="hp-ap-input hp-current" data-location="arm">/<span class="hp-max" data-location="arm">0</span></div> </div>
-                          <div class="hit-location" data-loc="gut"> <label>Gut</label> <div class="stat-line">AP:<input type="number" value="0" class="hp-ap-input">/<input type="number" value="0" class="hp-ap-input"></div> <div class="stat-line">HP:<input type="number" value="0" class="hp-ap-input hp-current" data-location="abdomen">/<span class="hp-max" data-location="abdomen">0</span></div> </div>
-                          <div class="hit-location" data-loc="l-leg"> <label>L. Leg</label> <div class="stat-line">AP:<input type="number" value="0" class="hp-ap-input">/<input type="number" value="0" class="hp-ap-input"></div> <div class="stat-line">HP:<input type="number" value="0" class="hp-ap-input hp-current" data-location="leg">/<span class="hp-max" data-location="leg">0</span></div> </div>
-                          <div class="hit-location" data-loc="r-leg"> <label>R. Leg</label> <div class="stat-line">AP:<input type="number" value="0" class="hp-ap-input">/<input type="number" value="0" class="hp-ap-input"></div> <div class="stat-line">HP:<input type="number" value="0" class="hp-ap-input hp-current" data-location="leg">/<span class="hp-max" data-location="leg">0</span></div> </div>
+                          <div class="hit-location" data-loc="head">
+                              <label>Head</label>
+                              <div class="stat-line">AP:<input type="number" value="0" class="hp-ap-input" id="head-ap-current">/<input type="number" value="0" class="hp-ap-input" id="head-ap-max"></div>
+                              <div class="stat-line">HP:<input type="number" value="0" class="hp-ap-input hp-current" data-location="head" id="head-hp-current">/<span class="hp-max" data-location="head">0</span></div>
+                              <input type="text" class="hit-location-item-input" id="head-item" placeholder="Item">
+                          </div>
+                          <div class="hit-location" data-loc="l-arm">
+                              <label>L. Arm</label>
+                              <div class="stat-line">AP:<input type="number" value="0" class="hp-ap-input" id="l-arm-ap-current">/<input type="number" value="0" class="hp-ap-input" id="l-arm-ap-max"></div>
+                              <div class="stat-line">HP:<input type="number" value="0" class="hp-ap-input hp-current" data-location="arm" id="l-arm-hp-current">/<span class="hp-max" data-location="arm">0</span></div>
+                              <input type="text" class="hit-location-item-input" id="l-arm-item" placeholder="Item">
+                          </div>
+                          <div class="hit-location" data-loc="chest">
+                              <label>Chest</label>
+                              <div class="stat-line">AP:<input type="number" value="0" class="hp-ap-input" id="chest-ap-current">/<input type="number" value="0" class="hp-ap-input" id="chest-ap-max"></div>
+                              <div class="stat-line">HP:<input type="number" value="0" class="hp-ap-input hp-current" data-location="chest" id="chest-hp-current">/<span class="hp-max" data-location="chest">0</span></div>
+                              <input type="text" class="hit-location-item-input" id="chest-item" placeholder="Item">
+                          </div>
+                          <div class="hit-location" data-loc="r-arm">
+                              <label>R. Arm</label>
+                              <div class="stat-line">AP:<input type="number" value="0" class="hp-ap-input" id="r-arm-ap-current">/<input type="number" value="0" class="hp-ap-input" id="r-arm-ap-max"></div>
+                              <div class="stat-line">HP:<input type="number" value="0" class="hp-ap-input hp-current" data-location="arm" id="r-arm-hp-current">/<span class="hp-max" data-location="arm">0</span></div>
+                              <input type="text" class="hit-location-item-input" id="r-arm-item" placeholder="Item">
+                          </div>
+                          <div class="hit-location" data-loc="gut">
+                              <label>Gut</label>
+                              <div class="stat-line">AP:<input type="number" value="0" class="hp-ap-input" id="gut-ap-current">/<input type="number" value="0" class="hp-ap-input" id="gut-ap-max"></div>
+                              <div class="stat-line">HP:<input type="number" value="0" class="hp-ap-input hp-current" data-location="abdomen" id="gut-hp-current">/<span class="hp-max" data-location="abdomen">0</span></div>
+                              <input type="text" class="hit-location-item-input" id="gut-item" placeholder="Item">
+                          </div>
+                          <div class="hit-location" data-loc="l-leg">
+                              <label>L. Leg</label>
+                              <div class="stat-line">AP:<input type="number" value="0" class="hp-ap-input" id="l-leg-ap-current">/<input type="number" value="0" class="hp-ap-input" id="l-leg-ap-max"></div>
+                              <div class="stat-line">HP:<input type="number" value="0" class="hp-ap-input hp-current" data-location="leg" id="l-leg-hp-current">/<span class="hp-max" data-location="leg">0</span></div>
+                              <input type="text" class="hit-location-item-input" id="l-leg-item" placeholder="Item">
+                          </div>
+                          <div class="hit-location" data-loc="r-leg">
+                              <label>R. Leg</label>
+                              <div class="stat-line">AP:<input type="number" value="0" class="hp-ap-input" id="r-leg-ap-current">/<input type="number" value="0" class="hp-ap-input" id="r-leg-ap-max"></div>
+                              <div class="stat-line">HP:<input type="number" value="0" class="hp-ap-input hp-current" data-location="leg" id="r-leg-hp-current">/<span class="hp-max" data-location="leg">0</span></div>
+                              <input type="text" class="hit-location-item-input" id="r-leg-item" placeholder="Item">
+                          </div>
                     </div>
                  </div>
             </div>
@@ -746,7 +793,6 @@
         const craftArtTemplate = `<div class="dynamic-entry skill-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Craft/Art">-</button><input type="text" placeholder="Craft/Art Name" class="skill-name-input flex-grow" data-base-skill="" data-base-percent="0" oninput="updateDynamicSkillLabel(this)"><input type="number" value="0" class="skill-rank-input" oninput="updateSkillPercentage(this)"><input type="number" value="0" class="skill-percent-display percent-display" readonly><button class="dice-roller-btn" onclick="rollPercentile(this)">🎲</button></div>`; // Craft/Art always uses input
         const combatStatTemplate = `<div class="dynamic-entry skill-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Stat">-</button><span class="skill-name-display" data-base-skill="" data-base-percent="0">Combat Stat</span><input type="text" placeholder="Combat Stat Name" class="skill-name-input flex-grow" style="display:none;" oninput="updateDynamicSkillLabel(this)"><input type="number" value="0" class="skill-rank-input" oninput="updateSkillPercentage(this)"><input type="number" value="0" class="skill-percent-display percent-display" readonly><button class="dice-roller-btn" onclick="rollPercentile(this)">🎲</button></div>`;
         const meleeWeaponTemplate = `<div class="dynamic-entry weapon-entry" data-weapon-type="melee"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Weapon">-</button><textarea placeholder="Weapon Name" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><input type="number" value="0" class="text-center skill-percent-input" oninput="updateXpSpent()"><input type="text" placeholder="e.g. 1d4" class="dmg-input"><span class="str-dmg-mod">(+0)</span><textarea placeholder="Notes" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><button class="dice-roller-btn" onclick="rollWeaponAttack(this)">🎲</button></div>`;
-        // *** FIXED: Changed ranged weapon damage input to type="text" ***
         const rangedWeaponTemplate = `<div class="dynamic-entry weapon-entry" data-weapon-type="ranged"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Weapon">-</button><textarea placeholder="Weapon Name" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><input type="number" value="0" class="text-center skill-percent-input" oninput="updateXpSpent()"><input type="text" placeholder="e.g. 1d6" class="dmg-input"><span class="str-dmg-mod">(+0)</span><textarea placeholder="Notes" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><button class="dice-roller-btn" onclick="rollWeaponAttack(this)">🎲</button></div>`;
         const powerTemplate = `<div class="dynamic-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Power/Note">-</button><input type="text" placeholder="Power or Note" class="flex-grow"></div>`;
         const inventorySlotTemplate = `<div class="dynamic-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Slot">-</button><input type="text" placeholder="Item Slot" class="flex-grow"></div>`;
@@ -784,6 +830,7 @@
                 ],
                 meleeWeapons: [],
                 rangedWeapons: []
+                // Default Hit Locations are handled in HTML and reset function
             }
         };
 
@@ -1492,7 +1539,9 @@
                         const maxVal = hpValues[location];
                         // Reset to max only if current value is invalid or higher than new max
                         // OR if the input is currently empty (e.g., after reset)
-                        if (isNaN(currentVal) || currentVal > maxVal || input.value === '') {
+                        // *** Use the input's ID to check if it has been loaded/set ***
+                        const isLoaded = document.getElementById(input.id)?.dataset.loaded === 'true';
+                        if (!isLoaded && (isNaN(currentVal) || currentVal > maxVal || input.value === '')) {
                             input.value = maxVal;
                         }
                         input.max = maxVal; // Update max attribute for potential browser validation
@@ -1884,22 +1933,20 @@
                      notes: entry.querySelector('textarea[placeholder="Notes"]')?.value || ''
                  });
             });
+            // *** UPDATED: Save Hit Location AP, HP, and Item ***
             document.querySelectorAll('.hit-location').forEach(loc => {
-                const locId = loc.dataset.loc;
-                const apInputs = loc.querySelectorAll('.hp-ap-input'); // Gets both AP current/max
-                const hpInput = loc.querySelector('.hp-current'); // Gets current HP input
-                if (locId && apInputs.length === 2 && hpInput) {
+                const locId = loc.dataset.loc; // e.g., "head", "l-arm"
+                if (locId) {
                     data.combat.hitLocations[locId] = {
-                        apCurrent: apInputs[0].value || '0',
-                        apMax: apInputs[1].value || '0',
-                        hpCurrent: hpInput.value || '0'
-                        // Max HP is calculated from CON, no need to save span value
+                        apCurrent: getVal(`${locId}-ap-current`) || '0',
+                        apMax: getVal(`${locId}-ap-max`) || '0',
+                        hpCurrent: getVal(`${locId}-hp-current`) || '0',
+                        item: getVal(`${locId}-item`) || '' // Save item field
                     };
                 }
             });
 
             // --- Inventory ---
-            // *** FIXED: Added saving for backpack slots and satchel ***
             data.inventory = { backpack: [], satchel: '', coin: '0', dynamic: [] };
             // Save backpack slots using their IDs
             for (let i = 1; i <= 5; i++) {
@@ -1929,7 +1976,6 @@
              });
 
             // --- Notes ---
-            // *** FIXED: Use ID to get notes textarea value ***
             data.notes = getTextAreaVal('#notes-text');
 
             // --- Section Customizations (Title & Color) ---
@@ -2040,7 +2086,13 @@
             // Helper to safely set value
             const setVal = (id, value) => {
                 const el = document.getElementById(id);
-                if (el) el.value = value;
+                if (el) {
+                    el.value = value;
+                    // Mark HP inputs as loaded to prevent reset in updateHpDisplay
+                    if (el.classList.contains('hp-current')) {
+                        el.dataset.loaded = 'true';
+                    }
+                }
                 else console.warn(`Element not found for setting value: ${id}`);
             };
             const setTextAreaVal = (selector, value) => {
@@ -2096,27 +2148,21 @@
                 data.combat.meleeWeapons?.forEach(weaponData => addEntry('melee-weapons-container', meleeWeaponTemplate, weaponData));
                 data.combat.rangedWeapons?.forEach(weaponData => addEntry('ranged-weapons-container', rangedWeaponTemplate, weaponData));
 
-                // Hit Locations (Update existing elements)
+                // *** UPDATED: Load Hit Location AP, HP, and Item ***
                 if (data.combat.hitLocations) {
                     Object.keys(data.combat.hitLocations).forEach(locId => {
-                        const locElement = document.querySelector(`.hit-location[data-loc="${locId}"]`);
                         const locData = data.combat.hitLocations[locId];
-                        if (locElement && locData) {
-                            const apInputs = locElement.querySelectorAll('.hp-ap-input'); // Gets both AP current/max
-                            const hpInput = locElement.querySelector('.hp-current'); // Gets current HP input
-                            if (apInputs.length === 2 && hpInput) {
-                                apInputs[0].value = locData.apCurrent || '0';
-                                apInputs[1].value = locData.apMax || '0';
-                                hpInput.value = locData.hpCurrent || '0';
-                                // Max HP span will be updated by updateHpDisplay later
-                            }
+                        if (locData) {
+                            setVal(`${locId}-ap-current`, locData.apCurrent || '0');
+                            setVal(`${locId}-ap-max`, locData.apMax || '0');
+                            setVal(`${locId}-hp-current`, locData.hpCurrent || '0');
+                            setVal(`${locId}-item`, locData.item || ''); // Load item field
                         }
                     });
                 }
             }
 
             // --- Populate Inventory ---
-            // *** FIXED: Added loading for backpack slots and satchel ***
             if (data.inventory) {
                 // Backpack (Update existing inputs using their IDs)
                 data.inventory.backpack?.forEach((item, index) => {
@@ -2133,7 +2179,6 @@
             data.powers?.forEach(powerData => addEntry('powers-container', powerTemplate, powerData));
 
             // --- Populate Notes ---
-            // *** FIXED: Use ID to set notes textarea value ***
             setTextAreaVal('#notes-text', data.notes);
 
             // --- Populate Section Customizations (Titles & Colors) ---
@@ -2162,6 +2207,10 @@
                     }
                 });
             }
+
+            // --- Clear loaded flags after population ---
+            document.querySelectorAll('.hp-current').forEach(el => el.removeAttribute('data-loaded'));
+
             // console.log("Finished populating sheet data."); // DEBUGGING
         }
 
@@ -2222,7 +2271,6 @@
             });
 
             // --- Reset Description & Flaws & Notes ---
-            // *** FIXED: Added #notes-text to reset ***
             const textAreasToReset = ['#char-desc', '#char-flaws', '#notes-text', '#satchel-items'];
             textAreasToReset.forEach(selector => {
                  const el = document.querySelector(selector);
@@ -2233,7 +2281,6 @@
             });
 
             // --- Reset Static Inventory (Backpack/Satchel) ---
-            // *** FIXED: Reset backpack slots using IDs ***
              for (let i = 1; i <= 5; i++) {
                 const slot = document.getElementById(`backpack-slot-${i}`);
                 if (slot) slot.value = '';
@@ -2250,19 +2297,23 @@
             }
 
 
-            // --- Reset Hit Locations (AP/HP) ---
+            // --- Reset Hit Locations (AP/HP/Item) ---
+            // *** UPDATED: Clear item field during reset ***
             document.querySelectorAll('.hit-location').forEach(loc => {
-                const apInputs = loc.querySelectorAll('.hp-ap-input');
-                const hpInput = loc.querySelector('.hp-current');
-                const hpMaxSpan = loc.querySelector('.hp-max');
-                // Reset AP inputs
-                if (apInputs.length === 2) {
-                     apInputs[0].value = '0'; // Current AP
-                     apInputs[1].value = '0'; // Max AP
+                const locId = loc.dataset.loc;
+                if (locId) {
+                    const apCurrent = document.getElementById(`${locId}-ap-current`);
+                    const apMax = document.getElementById(`${locId}-ap-max`);
+                    const hpCurrent = document.getElementById(`${locId}-hp-current`);
+                    const itemInput = document.getElementById(`${locId}-item`);
+                    const hpMaxSpan = loc.querySelector('.hp-max');
+
+                    if(apCurrent) apCurrent.value = '0';
+                    if(apMax) apMax.value = '0';
+                    if(hpCurrent) hpCurrent.value = '0';
+                    if(itemInput) itemInput.value = ''; // Clear item input
+                    if(hpMaxSpan) hpMaxSpan.textContent = '0';
                 }
-                // Reset HP input and max span
-                if (hpInput) hpInput.value = '0';
-                if (hpMaxSpan) hpMaxSpan.textContent = '0';
             });
 
             // --- Reset Section Customizations (Titles & Colors) ---
