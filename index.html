@@ -944,13 +944,13 @@
                         // Determine if it's a predefined skill (has baseSkill) or custom (has name)
                         const isPredefined = !!data.baseSkill;
                         const isCustom = !!data.name && !isPredefined; // Custom has name but no baseSkill
-                        // *** UPDATED: Craft/Art uses the 'name' property from saved data ***
                         const isCraftArt = containerId === 'craft-art-container';
 
-                        if (isCraftArt && nameInput && nameSpan && data.name !== undefined) {
-                             // Special case for Craft/Art which always uses input
+                        // *** UPDATED: Logic for handling Craft/Art name loading ***
+                        if (isCraftArt && nameInput && nameSpan) {
+                             // Craft/Art always uses input, load name from data.name
                              nameInput.value = data.name || ''; // Use saved name
-                             nameInput.dataset.baseSkill = data.name || '';
+                             nameInput.dataset.baseSkill = data.name || ''; // Also store in dataset for consistency
                              if (data.basePercent !== undefined) nameInput.dataset.basePercent = data.basePercent;
                              nameInput.style.display = ''; // Show input
                              nameSpan.style.display = 'none'; // Hide span
@@ -963,7 +963,6 @@
                             if (data.multiplier) nameSpan.dataset.multiplier = data.multiplier;
                             nameSpan.style.display = ''; // Show span
                             nameInput.style.display = 'none'; // Hide input
-                            // Label text content will be set by updateSkillPercentage
                         } else if (isCustom && nameInput && nameSpan) {
                             // Populate other custom skills (using input, hide span)
                             nameInput.value = data.name;
@@ -977,7 +976,8 @@
 
                         if (rankInput) {
                              if (data.rank !== undefined) rankInput.value = data.rank;
-                             updateSkillPercentage(rankInput); // Update display after setting rank
+                             // Call updateSkillPercentage AFTER potentially setting name/baseSkill
+                             updateSkillPercentage(rankInput);
                         } else {
                             console.warn("Could not find rankInput for skill entry:", data);
                         }
@@ -1641,6 +1641,7 @@
         function updateDynamicSkillLabel(inputElement) {
              if (!inputElement) return; // Add null check
             // When the user types in a custom skill name, update its dataset for consistency
+            // This dataset value is used as the identifier when saving/loading
             inputElement.dataset.baseSkill = inputElement.value;
             const entry = inputElement.closest('.skill-entry');
             if (entry) {
@@ -2435,4 +2436,5 @@
 
 </body>
 </html>
+
 
