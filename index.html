@@ -800,7 +800,8 @@
         // Use span for predefined skill names, input for user-added ones
         const skillTemplate = `<div class="dynamic-entry skill-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Skill">-</button><span class="skill-name-display" data-base-skill="" data-base-percent="0">Skill Name</span><input type="text" placeholder="Skill Name" class="skill-name-input flex-grow" style="display:none;" oninput="updateDynamicSkillLabel(this)"><input type="number" value="0" class="skill-rank-input" oninput="updateSkillPercentage(this)"><input type="number" value="0" class="skill-percent-display percent-display" readonly><button class="dice-roller-btn" onclick="rollPercentile(this)">🎲</button></div>`;
         const knowledgeTemplate = `<div class="dynamic-entry skill-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Knowledge">-</button><span class="skill-name-display" data-base-skill="" data-base-percent="0">Knowledge Area</span><input type="text" placeholder="Knowledge Area" class="skill-name-input flex-grow" style="display:none;" oninput="updateDynamicSkillLabel(this)"><input type="number" value="0" class="skill-rank-input" oninput="updateSkillPercentage(this)"><input type="number" value="0" class="skill-percent-display percent-display" readonly><button class="dice-roller-btn" onclick="rollPercentile(this)">🎲</button></div>`;
-        const craftArtTemplate = `<div class="dynamic-entry skill-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Craft/Art">-</button><input type="text" placeholder="Craft/Art Name" class="skill-name-input flex-grow" data-base-skill="" data-base-percent="0" oninput="updateDynamicSkillLabel(this)"><input type="number" value="0" class="skill-rank-input" oninput="updateSkillPercentage(this)"><input type="number" value="0" class="skill-percent-display percent-display" readonly><button class="dice-roller-btn" onclick="rollPercentile(this)">🎲</button></div>`; // Craft/Art always uses input
+        // --- UPDATED: Craft/Art template now matches Knowledge template ---
+        const craftArtTemplate = `<div class="dynamic-entry skill-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Craft/Art">-</button><span class="skill-name-display" data-base-skill="" data-base-percent="0">Craft/Art Name</span><input type="text" placeholder="Craft/Art Name" class="skill-name-input flex-grow" style="display:none;" oninput="updateDynamicSkillLabel(this)"><input type="number" value="0" class="skill-rank-input" oninput="updateSkillPercentage(this)"><input type="number" value="0" class="skill-percent-display percent-display" readonly><button class="dice-roller-btn" onclick="rollPercentile(this)">🎲</button></div>`;
         const combatStatTemplate = `<div class="dynamic-entry skill-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Stat">-</button><span class="skill-name-display" data-base-skill="" data-base-percent="0">Combat Stat</span><input type="text" placeholder="Combat Stat Name" class="skill-name-input flex-grow" style="display:none;" oninput="updateDynamicSkillLabel(this)"><input type="number" value="0" class="skill-rank-input" oninput="updateSkillPercentage(this)"><input type="number" value="0" class="skill-percent-display percent-display" readonly><button class="dice-roller-btn" onclick="rollPercentile(this)">🎲</button></div>`;
         const meleeWeaponTemplate = `<div class="dynamic-entry weapon-entry" data-weapon-type="melee"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Weapon">-</button><textarea placeholder="Weapon Name" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><input type="number" value="0" class="text-center skill-percent-input" oninput="updateXpSpent()"><input type="text" placeholder="e.g. 1d4" class="dmg-input"><span class="str-dmg-mod">(+0)</span><textarea placeholder="Notes" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><button class="dice-roller-btn" onclick="rollWeaponAttack(this)">🎲</button></div>`;
         const rangedWeaponTemplate = `<div class="dynamic-entry weapon-entry" data-weapon-type="ranged"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Weapon">-</button><textarea placeholder="Weapon Name" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><input type="number" value="0" class="text-center skill-percent-input" oninput="updateXpSpent()"><input type="text" placeholder="e.g. 1d6" class="dmg-input"><span class="str-dmg-mod">(+0)</span><textarea placeholder="Notes" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><button class="dice-roller-btn" onclick="rollWeaponAttack(this)">🎲</button></div>`;
@@ -830,8 +831,8 @@
                     { baseSkill: "Sport", basePercent: 0 }
                 ],
                 craftArt: [
-                    // Default craft/art skills can be added here if desired, e.g.:
-                    // { name: "Smithing", basePercent: 0, rank: "0" }
+                    // --- UPDATED: Default Smith skill uses baseSkill now ---
+                    { baseSkill: "Smith", basePercent: 1, rank: "0" }
                 ]
             },
             combat: {
@@ -953,21 +954,11 @@
                         const rankInput = newEntry.querySelector('.skill-rank-input');
 
                         // Determine if it's a predefined skill (has baseSkill) or custom (has name)
-                        const isPredefined = !!data.baseSkill;
-                        const isCustom = !!data.name && !isPredefined; // Custom has name but no baseSkill
-                        const isCraftArt = containerId === 'craft-art-container';
+                        const isPredefined = !!data.baseSkill; // Skill defined in defaultSheetStructure
+                        const isCustom = !!data.name && !isPredefined; // Custom skill loaded from save data
 
-                        // --- FIX START: Corrected logic for loading Craft/Art ---
-                        if (isCraftArt && nameInput) { // Check only for nameInput for Craft/Art
-                             // Craft/Art always uses input, load name from data.name
-                             nameInput.value = data.name || ''; // Use saved name
-                             nameInput.dataset.baseSkill = data.name || ''; // Also store in dataset for consistency
-                             if (data.basePercent !== undefined) nameInput.dataset.basePercent = data.basePercent;
-                             nameInput.style.display = ''; // Ensure input is shown
-                             if (nameSpan) nameSpan.style.display = 'none'; // Hide span if it somehow exists (template doesn't have it)
-                        }
-                        // --- FIX END ---
-                        else if (isPredefined && nameSpan && nameInput) {
+                        // --- UPDATED: Consistent handling for all skill types (Core, Knowledge, Craft/Art, Combat) ---
+                        if (isPredefined && nameSpan && nameInput) {
                             // Populate predefined skill (using span, hide input)
                             nameSpan.textContent = data.baseSkill; // Set initial text
                             nameSpan.dataset.baseSkill = data.baseSkill;
@@ -976,22 +967,14 @@
                             if (data.multiplier) nameSpan.dataset.multiplier = data.multiplier;
                             nameSpan.style.display = ''; // Show span
                             nameInput.style.display = 'none'; // Hide input
-                        } else if (isCustom && nameInput && nameSpan) {
-                            // Populate other custom skills (using input, hide span)
+                        } else if (isCustom && nameSpan && nameInput) {
+                            // Populate custom skill (using input, hide span)
                             nameInput.value = data.name;
                             nameInput.dataset.baseSkill = data.name; // Store name as baseSkill identifier
                             if (data.basePercent !== undefined) nameInput.dataset.basePercent = data.basePercent;
                             nameInput.style.display = ''; // Show input
                             nameSpan.style.display = 'none'; // Hide span
-                        } else if (isCustom && nameInput && !nameSpan && !isCraftArt) {
-                            // Handle case where a custom skill was added but the span might be missing (fallback)
-                            console.warn("Loading custom skill without a span element for:", data.name);
-                            nameInput.value = data.name;
-                            nameInput.dataset.baseSkill = data.name;
-                            if (data.basePercent !== undefined) nameInput.dataset.basePercent = data.basePercent;
-                            nameInput.style.display = '';
-                        }
-                        else {
+                        } else {
                             console.warn("Could not determine skill type or find elements for skill entry:", data, "in container:", containerId);
                         }
 
@@ -1034,18 +1017,11 @@
                  if (newEntry.classList.contains('skill-entry')) {
                      const nameSpan = newEntry.querySelector('.skill-name-display');
                      const nameInput = newEntry.querySelector('.skill-name-input');
-                     const isCraftArt = containerId === 'craft-art-container';
-
-                     if (nameInput) { // Only need nameInput for this logic
-                         if (isCraftArt) {
-                             if (nameSpan) nameSpan.style.display = 'none'; // Hide span if it exists
-                             nameInput.style.display = ''; // Show input for new craft/art
-                             nameInput.focus(); // Focus the input for easy typing
-                         } else {
-                             if (nameSpan) nameSpan.style.display = 'none'; // Hide span for new core/knowledge/combat
-                             nameInput.style.display = ''; // Show input
-                             nameInput.focus();
-                         }
+                     // --- UPDATED: Show input immediately for *any* new skill entry ---
+                     if (nameSpan && nameInput) {
+                         nameSpan.style.display = 'none'; // Hide span
+                         nameInput.style.display = ''; // Show input
+                         nameInput.focus(); // Focus the input for easy typing
                      }
                      // Ensure XP updates when adding a blank skill
                      updateXpSpent();
@@ -1432,8 +1408,12 @@
              // Read the *current* value of the base skill, considering modifiers
              const baseSkillValue = baseSkillPercentDisplay ? parseInt(baseSkillPercentDisplay.value) || 0 : 0;
 
-             // Calculate total attack skill (base + weapon specific, capped at 75% unless base is higher)
-             const totalSkillValue = Math.max(baseSkillValue, Math.min(75, baseSkillValue + weaponSkillValue));
+             // --- UPDATED: Calculate total attack skill ---
+             // Base skill contribution is capped at 75% (unless naturally higher, though unlikely with current rules)
+             const effectiveBase = Math.min(baseSkillValue, 75);
+             // Add the weapon's specific percentage bonus on top
+             const totalSkillValue = effectiveBase + weaponSkillValue;
+             // Note: The final totalSkillValue can exceed 75% due to the weapon bonus.
 
              // --- Roll the Attack ---
              const roll = rollSingleDie(100);
@@ -1892,83 +1872,47 @@
 
             // --- Skills (Core, Knowledge, Craft/Art) ---
             data.skills = { core: [], knowledge: [], craftArt: [] };
-            document.querySelectorAll('#skills-container .skill-entry').forEach(entry => {
-                const nameSpan = entry.querySelector('.skill-name-display');
-                const nameInput = entry.querySelector('.skill-name-input');
-                const rankInput = entry.querySelector('.skill-rank-input');
-                const detailSource = (nameSpan && nameSpan.style.display !== 'none') ? nameSpan : nameInput;
+            // --- UPDATED: Consistent saving logic for all skill types ---
+            function gatherSkillData(containerId, targetArray) {
+                document.querySelectorAll(`#${containerId} .skill-entry`).forEach(entry => {
+                    const nameSpan = entry.querySelector('.skill-name-display');
+                    const nameInput = entry.querySelector('.skill-name-input');
+                    const rankInput = entry.querySelector('.skill-rank-input');
 
-                if (rankInput && detailSource) { // Need rank and a source for skill details
-                    const skillData = {
-                        rank: rankInput.value || '0',
-                        // Save either baseSkill (predefined) or name (custom)
-                        baseSkill: (detailSource === nameSpan) ? detailSource.dataset.baseSkill : undefined,
-                        name: (detailSource === nameInput) ? detailSource.value : undefined,
-                        // Include basePercent only if it exists on the element
-                        basePercent: detailSource.dataset.basePercent ? detailSource.dataset.basePercent : undefined,
-                        attribute: detailSource.dataset.attribute, // Include if exists
-                        multiplier: detailSource.dataset.multiplier, // Include if exists
-                    };
-                    // Clean up undefined properties before pushing
-                    Object.keys(skillData).forEach(key => skillData[key] === undefined && delete skillData[key]);
-                    data.skills.core.push(skillData);
-                }
-            });
-             document.querySelectorAll('#knowledge-container .skill-entry').forEach(entry => {
-                 const nameSpan = entry.querySelector('.skill-name-display');
-                 const nameInput = entry.querySelector('.skill-name-input');
-                 const rankInput = entry.querySelector('.skill-rank-input');
-                 const detailSource = (nameSpan && nameSpan.style.display !== 'none') ? nameSpan : nameInput;
+                    if (rankInput && (nameSpan || nameInput)) { // Need rank and at least one name element
+                        const isUsingSpan = nameSpan && nameSpan.style.display !== 'none';
+                        const detailSource = isUsingSpan ? nameSpan : nameInput;
 
-                 if (rankInput && detailSource) {
-                     const skillData = {
-                         rank: rankInput.value || '0',
-                         baseSkill: (detailSource === nameSpan) ? detailSource.dataset.baseSkill : undefined,
-                         name: (detailSource === nameInput) ? detailSource.value : undefined,
-                         basePercent: detailSource.dataset.basePercent ? detailSource.dataset.basePercent : undefined,
-                         attribute: detailSource.dataset.attribute,
-                         multiplier: detailSource.dataset.multiplier,
-                     };
-                     Object.keys(skillData).forEach(key => skillData[key] === undefined && delete skillData[key]);
-                     data.skills.knowledge.push(skillData);
-                 }
-             });
-             // *** UPDATED: Ensure Craft/Art name is saved from the input field ***
-             document.querySelectorAll('#craft-art-container .skill-entry').forEach(entry => {
-                 const nameInput = entry.querySelector('.skill-name-input');
-                 const rankInput = entry.querySelector('.skill-rank-input');
-                 if (nameInput && rankInput) {
-                     const skillData = {
-                         rank: rankInput.value || '0',
-                         name: nameInput.value || '', // Explicitly save the input value as name
-                         basePercent: nameInput.dataset.basePercent || '0', // Save basePercent from input dataset
-                     };
-                      Object.keys(skillData).forEach(key => skillData[key] === undefined && delete skillData[key]);
-                     data.skills.craftArt.push(skillData);
-                 }
-             });
+                        if (detailSource) { // Ensure we have a valid source
+                            const skillData = {
+                                rank: rankInput.value || '0',
+                                // Save baseSkill if span is visible (predefined), otherwise save name from input (custom)
+                                baseSkill: isUsingSpan ? detailSource.dataset.baseSkill : undefined,
+                                name: !isUsingSpan ? detailSource.value : undefined,
+                                // Include basePercent only if it exists on the element
+                                basePercent: detailSource.dataset.basePercent ? detailSource.dataset.basePercent : undefined,
+                                attribute: detailSource.dataset.attribute, // Include if exists
+                                multiplier: detailSource.dataset.multiplier, // Include if exists
+                            };
+                            // Clean up undefined properties before pushing
+                            Object.keys(skillData).forEach(key => skillData[key] === undefined && delete skillData[key]);
+                            targetArray.push(skillData);
+                        } else {
+                             console.warn("Could not find detail source (span or input) for skill in container:", containerId, entry);
+                        }
+                    } else {
+                         console.warn("Missing rank or name element for skill in container:", containerId, entry);
+                    }
+                });
+            }
+            gatherSkillData('skills-container', data.skills.core);
+            gatherSkillData('knowledge-container', data.skills.knowledge);
+            gatherSkillData('craft-art-container', data.skills.craftArt); // Use same logic for Craft/Art
 
             // --- Combat Details (Skills, Weapons, Hit Locations) ---
             data.combat = { skills: [], meleeWeapons: [], rangedWeapons: [], hitLocations: {} };
-             document.querySelectorAll('#combat-skills-display .skill-entry').forEach(entry => {
-                 const nameSpan = entry.querySelector('.skill-name-display');
-                 const nameInput = entry.querySelector('.skill-name-input');
-                 const rankInput = entry.querySelector('.skill-rank-input');
-                 const detailSource = (nameSpan && nameSpan.style.display !== 'none') ? nameSpan : nameInput;
+            gatherSkillData('combat-skills-display', data.combat.skills); // Use same logic for Combat Skills
 
-                 if (rankInput && detailSource) {
-                     const skillData = {
-                         rank: rankInput.value || '0',
-                         baseSkill: (detailSource === nameSpan) ? detailSource.dataset.baseSkill : undefined,
-                         name: (detailSource === nameInput) ? detailSource.value : undefined,
-                         basePercent: detailSource.dataset.basePercent ? detailSource.dataset.basePercent : undefined,
-                         attribute: detailSource.dataset.attribute,
-                         multiplier: detailSource.dataset.multiplier,
-                     };
-                     Object.keys(skillData).forEach(key => skillData[key] === undefined && delete skillData[key]);
-                     data.combat.skills.push(skillData);
-                 }
-             });
             document.querySelectorAll('#melee-weapons-container .weapon-entry').forEach(entry => {
                  data.combat.meleeWeapons.push({
                      name: entry.querySelector('textarea[placeholder="Weapon Name"]')?.value || '',
@@ -2188,7 +2132,7 @@
             if (data.skills) {
                 data.skills.core?.forEach(skillData => addEntry('skills-container', skillTemplate, skillData));
                 data.skills.knowledge?.forEach(skillData => addEntry('knowledge-container', knowledgeTemplate, skillData));
-                // *** Craft/Art loading relies on addEntry correctly handling data.name ***
+                // --- UPDATED: Craft/Art uses consistent addEntry logic now ---
                 data.skills.craftArt?.forEach(skillData => addEntry('craft-art-container', craftArtTemplate, skillData));
             }
 
@@ -2346,7 +2290,8 @@
                 defaultSheetStructure.skills.core.forEach(skillDef => addEntry('skills-container', skillTemplate, { ...skillDef, rank: '0' }));
                 defaultSheetStructure.skills.knowledge.forEach(skillDef => addEntry('knowledge-container', knowledgeTemplate, { ...skillDef, rank: '0' }));
                 defaultSheetStructure.combat.skills.forEach(skillDef => addEntry('combat-skills-display', combatStatTemplate, { ...skillDef, rank: '0' }));
-                defaultSheetStructure.skills.craftArt.forEach(skillDef => addEntry('craft-art-container', craftArtTemplate, skillDef)); // Add default craft/art
+                // --- UPDATED: Add default craft/art using consistent logic ---
+                defaultSheetStructure.skills.craftArt.forEach(skillDef => addEntry('craft-art-container', craftArtTemplate, skillDef));
             }
 
 
