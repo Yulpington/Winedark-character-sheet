@@ -334,11 +334,12 @@
          }
 
 
-         /* Grid for top header fields - Adjusted for Goal moving out */
+         /* Grid for top header fields - Adjusted for XP changes */
          .header-fields-grid {
              display: grid;
-             /* Columns: Name(3), Class(2), Profession(2), XP Earned(2), XP Spent(1) */
-             grid-template-columns: 3fr 2fr 2fr 2fr 1fr;
+             /* Columns: Name(3), Class(2), Profession(2), XP(1), Unspent XP(2) */
+             /* Unspent XP column needs more space for value and potential warning */
+             grid-template-columns: 3fr 2fr 2fr 1fr 2fr;
              gap: 1rem;
              align-items: end; /* Align items to the bottom of the cell */
              margin-bottom: 1rem; /* Add space before Goal */
@@ -346,35 +347,62 @@
          .header-fields-grid > div { /* Target direct children divs */
              margin-bottom: 0; /* Remove default margin from inputs inside */
          }
+         /* Container for Unspent XP and its warning */
+         .unspent-xp-container {
+             display: flex;
+             flex-direction: column; /* Stack input and warning */
+             gap: 0.1rem; /* Small gap between input and warning */
+         }
          #goal-container { /* Style the container for Goal */
              margin-top: 0; /* Remove potential top margin */
          }
-         /* Styling for XP Spent field */
-         #xp-spent {
+         /* Styling for Unspent XP field */
+         #unspent-xp {
              background-color: #e5e7eb; /* Light gray background */
              cursor: default;
              text-align: center;
              font-weight: bold;
              transition: color 0.2s ease-in-out; /* Smooth color transition */
          }
-         .xp-spent-over { color: #dc2626; } /* Red */
-         .xp-spent-equal { color: #16a34a; } /* Green */
-         .xp-spent-under { color: #6b7280; } /* Gray */
+         /* NEW: Styles for Unspent XP text color */
+         .xp-remaining-positive { color: #16a34a; } /* Green */
+         .xp-remaining-negative { color: #dc2626; } /* Red */
+         .xp-remaining-zero { color: #6b7280; } /* Gray */
+
+         /* NEW: Style for class XP warning message */
+         #class-xp-warning {
+             font-size: 0.75rem; /* Smaller font size */
+             color: #dc2626; /* Red color */
+             text-align: center; /* Center align text */
+             min-height: 1.1em; /* Reserve space even when empty */
+             line-height: 1.1;
+             /* Ensure the span itself is inside the container */
+             width: 100%;
+         }
 
           /* Responsive Header Grid */
          @media (max-width: 850px) { /* Adjust breakpoint as needed */
              .header-fields-grid {
                  grid-template-columns: 1fr 1fr 1fr; /* 3 columns */
+                 gap: 0.75rem; /* Slightly reduce gap */
              }
              .header-fields-grid > div:nth-child(1) { grid-column: 1 / -1; } /* Name full width */
-             /* Class, Profession, XP Earned, XP Spent take one column each */
+             /* Class, Profession, XP take one column each */
+             .header-fields-grid > div:nth-child(2) { grid-column: 1 / 2; } /* Class */
+             .header-fields-grid > div:nth-child(3) { grid-column: 2 / 3; } /* Profession */
+             .header-fields-grid > div:nth-child(4) { grid-column: 3 / 4; } /* XP */
+             .unspent-xp-container { grid-column: 1 / -1; } /* Unspent XP full width below */
          }
          @media (max-width: 600px) {
               .header-fields-grid {
                  grid-template-columns: 1fr 1fr; /* 2 columns */
              }
               .header-fields-grid > div:nth-child(1) { grid-column: 1 / -1; } /* Name full width */
-              /* Goal is already outside the grid */
+              /* Class, Profession, XP, Unspent XP take half width */
+              .header-fields-grid > div:nth-child(2) { grid-column: 1 / 2; } /* Class */
+              .header-fields-grid > div:nth-child(3) { grid-column: 2 / 3; } /* Profession */
+              .header-fields-grid > div:nth-child(4) { grid-column: 1 / 2; } /* XP */
+              .unspent-xp-container { grid-column: 2 / 3; } /* Unspent XP */
          }
 
 
@@ -486,6 +514,7 @@
              .skill-name-display { width: 100%; margin-right: 0; margin-bottom: 0.25rem; } /* Skill name full width */
              .characteristic-entry { grid-template-columns: auto 1fr 1fr auto; } /* Adjust characteristic layout */
              .hit-location-item-input { font-size: 0.6rem; } /* Smaller item input font on small screens */
+             #class-xp-warning { font-size: 0.7rem; } /* Slightly smaller warning on mobile */
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -532,8 +561,10 @@
                         </select>
                     </div>
                     <div> <label for="char-profession">Profession:</label> <input type="text" id="char-profession" placeholder="e.g., Shepherd, Merchant"> </div>
-                    <div> <label for="char-experience">XP Earned:</label> <input type="number" id="char-experience" value="0" placeholder="100" oninput="updateXpSpent()"> </div>
-                    <div> <label for="xp-spent">XP Spent:</label> <input type="number" id="xp-spent" value="0" readonly> </div>
+                    <div> <label for="char-experience">XP:</label> <input type="number" id="char-experience" placeholder="XP" oninput="updateUnspentXpAndWarnings()"> </div>
+                    <div class="unspent-xp-container">
+                        <label for="unspent-xp">Unspent XP:</label>
+                        <input type="text" id="unspent-xp" value="0" readonly> <span id="class-xp-warning"></span> </div>
                 </div>
                 <div id="goal-container">
                     <label for="char-goal">Goal:</label>
@@ -795,17 +826,16 @@
 
     <script>
         // --- Constants ---
-        const LOCAL_STORAGE_KEY = 'wineDarkSheetData_v3'; // Use a versioned key
+        const LOCAL_STORAGE_KEY = 'wineDarkSheetData_v4'; // Incremented version for new XP system
 
         // --- Template Strings for Dynamic Entries ---
         // Use span for predefined skill names, input for user-added ones
         const skillTemplate = `<div class="dynamic-entry skill-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Skill">-</button><span class="skill-name-display" data-base-skill="" data-base-percent="0">Skill Name</span><input type="text" placeholder="Skill Name" class="skill-name-input flex-grow" style="display:none;" oninput="updateDynamicSkillLabel(this)"><input type="number" value="0" class="skill-rank-input" oninput="updateSkillPercentage(this)"><input type="number" value="0" class="skill-percent-display percent-display" readonly><button class="dice-roller-btn" onclick="rollPercentile(this)">🎲</button></div>`;
         const knowledgeTemplate = `<div class="dynamic-entry skill-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Knowledge">-</button><span class="skill-name-display" data-base-skill="" data-base-percent="0">Knowledge Area</span><input type="text" placeholder="Knowledge Area" class="skill-name-input flex-grow" style="display:none;" oninput="updateDynamicSkillLabel(this)"><input type="number" value="0" class="skill-rank-input" oninput="updateSkillPercentage(this)"><input type="number" value="0" class="skill-percent-display percent-display" readonly><button class="dice-roller-btn" onclick="rollPercentile(this)">🎲</button></div>`;
-        // --- UPDATED: Craft/Art template now matches Knowledge template ---
         const craftArtTemplate = `<div class="dynamic-entry skill-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Craft/Art">-</button><span class="skill-name-display" data-base-skill="" data-base-percent="0">Craft/Art Name</span><input type="text" placeholder="Craft/Art Name" class="skill-name-input flex-grow" style="display:none;" oninput="updateDynamicSkillLabel(this)"><input type="number" value="0" class="skill-rank-input" oninput="updateSkillPercentage(this)"><input type="number" value="0" class="skill-percent-display percent-display" readonly><button class="dice-roller-btn" onclick="rollPercentile(this)">🎲</button></div>`;
         const combatStatTemplate = `<div class="dynamic-entry skill-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Stat">-</button><span class="skill-name-display" data-base-skill="" data-base-percent="0">Combat Stat</span><input type="text" placeholder="Combat Stat Name" class="skill-name-input flex-grow" style="display:none;" oninput="updateDynamicSkillLabel(this)"><input type="number" value="0" class="skill-rank-input" oninput="updateSkillPercentage(this)"><input type="number" value="0" class="skill-percent-display percent-display" readonly><button class="dice-roller-btn" onclick="rollPercentile(this)">🎲</button></div>`;
-        const meleeWeaponTemplate = `<div class="dynamic-entry weapon-entry" data-weapon-type="melee"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Weapon">-</button><textarea placeholder="Weapon Name" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><input type="number" value="0" class="text-center skill-percent-input" oninput="updateXpSpent()"><input type="text" placeholder="e.g. 1d4" class="dmg-input"><span class="str-dmg-mod">(+0)</span><textarea placeholder="Notes" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><button class="dice-roller-btn" onclick="rollWeaponAttack(this)">🎲</button></div>`;
-        const rangedWeaponTemplate = `<div class="dynamic-entry weapon-entry" data-weapon-type="ranged"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Weapon">-</button><textarea placeholder="Weapon Name" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><input type="number" value="0" class="text-center skill-percent-input" oninput="updateXpSpent()"><input type="text" placeholder="e.g. 1d6" class="dmg-input"><span class="str-dmg-mod">(+0)</span><textarea placeholder="Notes" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><button class="dice-roller-btn" onclick="rollWeaponAttack(this)">🎲</button></div>`;
+        const meleeWeaponTemplate = `<div class="dynamic-entry weapon-entry" data-weapon-type="melee"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Weapon">-</button><textarea placeholder="Weapon Name" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><input type="number" value="0" class="text-center skill-percent-input" oninput="updateUnspentXpAndWarnings()"><input type="text" placeholder="e.g. 1d4" class="dmg-input"><span class="str-dmg-mod">(+0)</span><textarea placeholder="Notes" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><button class="dice-roller-btn" onclick="rollWeaponAttack(this)">🎲</button></div>`;
+        const rangedWeaponTemplate = `<div class="dynamic-entry weapon-entry" data-weapon-type="ranged"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Weapon">-</button><textarea placeholder="Weapon Name" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><input type="number" value="0" class="text-center skill-percent-input" oninput="updateUnspentXpAndWarnings()"><input type="text" placeholder="e.g. 1d6" class="dmg-input"><span class="str-dmg-mod">(+0)</span><textarea placeholder="Notes" class="auto-expand" rows="1" oninput="autoExpandTextarea(this)"></textarea><button class="dice-roller-btn" onclick="rollWeaponAttack(this)">🎲</button></div>`;
         const powerTemplate = `<div class="dynamic-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Power/Note">-</button><input type="text" placeholder="Power or Note" class="flex-grow"></div>`;
         const inventorySlotTemplate = `<div class="dynamic-entry"><button class="remove-btn" onclick="removeEntry(this)" title="Remove Slot">-</button><input type="text" placeholder="Item Slot" class="flex-grow"></div>`;
 
@@ -832,7 +862,6 @@
                     { baseSkill: "Sport", basePercent: 0 }
                 ],
                 craftArt: [
-                    // --- UPDATED: Default Smith skill uses baseSkill now ---
                     { baseSkill: "Smith", basePercent: 1, rank: "0" }
                 ]
             },
@@ -844,7 +873,6 @@
                 ],
                 meleeWeapons: [],
                 rangedWeapons: []
-                // Default Hit Locations are handled in HTML and reset function
             }
         };
 
@@ -867,7 +895,7 @@
                 const sheetData = gatherSheetData();
                 const jsonData = JSON.stringify(sheetData);
                 localStorage.setItem(LOCAL_STORAGE_KEY, jsonData);
-                 // console.log("Sheet data saved to local storage."); // DEBUGGING
+                 // console.log("Sheet data saved to local storage.");
             } catch (error) {
                 console.error("Error saving sheet data to local storage:", error);
                 showDicePopup("Error saving sheet data. See console.");
@@ -878,40 +906,39 @@
         const debouncedSave = debounce(saveSheetToLocalStorage, 500); // Save 500ms after last change
 
         function loadSheetFromLocalStorage() {
-            // console.log("Attempting to load sheet from local storage..."); // DEBUGGING
+            // console.log("Attempting to load sheet from local storage...");
             try {
                 const jsonData = localStorage.getItem(LOCAL_STORAGE_KEY);
                 if (jsonData) {
-                    // console.log("Found saved data:", jsonData.substring(0, 200) + "..."); // DEBUGGING - Log start of data
+                    // console.log("Found saved data:", jsonData.substring(0, 200) + "...");
                     const data = JSON.parse(jsonData);
-                    // Basic validation - check if it looks like our data
-                    if (typeof data === 'object' && data !== null && data.version && data.version >= 3) { // Updated version check if needed
-                        // console.log("Parsed data version:", data.version); // DEBUGGING
-                        // --- IMPORTANT: Reset sheet state *before* populating ---
+                    // Basic validation - check if it looks like our data and has the correct version
+                    if (typeof data === 'object' && data !== null && data.version && data.version >= 4) { // Check for version 4 or higher
+                        // console.log("Parsed data version:", data.version);
                         setDefaultSheetState(false); // Reset sheet without recalculating yet
                         populateSheetData(data); // Populate the DOM from saved data
-                        // console.log("Sheet data loaded successfully from local storage. Recalculating..."); // DEBUGGING
+                        // console.log("Sheet data loaded successfully from local storage. Recalculating...");
                         // Recalculate everything *after* populating
                         updateHpDisplay();
                         updatePercentages(); // This includes skills and STR mod
-                        updateXpSpent();
-                        // console.log("Recalculations complete after load."); // DEBUGGING
+                        updateUnspentXpAndWarnings(); // Use the new XP update function
+                        // console.log("Recalculations complete after load.");
                         return true; // Indicate successful load
                     } else {
-                        console.warn("Invalid or outdated data found in local storage. Version:", data?.version); // DEBUGGING
+                        console.warn("Invalid or outdated data found in local storage. Version:", data?.version, "Expected >= 4");
                         localStorage.removeItem(LOCAL_STORAGE_KEY); // Remove invalid data
                     }
                 } else {
-                    // console.log("No data found in local storage for key:", LOCAL_STORAGE_KEY); // DEBUGGING
+                    // console.log("No data found in local storage for key:", LOCAL_STORAGE_KEY);
                 }
             } catch (error) {
-                console.error("Error loading or parsing sheet data from local storage:", error); // DEBUGGING
+                console.error("Error loading or parsing sheet data from local storage:", error);
                 showDicePopup("Error loading saved data. Resetting. See console.");
                 localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear potentially corrupted data
             }
 
             // If function hasn't returned true, it means loading failed or no data found
-            // console.log("Loading failed or no data found. Setting default state."); // DEBUGGING
+            // console.log("Loading failed or no data found. Setting default state.");
             setDefaultSheetState(true); // Set default state and calculate
             return false; // Indicate load failed or no data
         }
@@ -958,31 +985,27 @@
                         const isPredefined = !!data.baseSkill; // Skill defined in defaultSheetStructure
                         const isCustom = !!data.name && !isPredefined; // Custom skill loaded from save data
 
-                        // --- UPDATED: Consistent handling for all skill types (Core, Knowledge, Craft/Art, Combat) ---
                         if (isPredefined && nameSpan && nameInput) {
-                            // Populate predefined skill (using span, hide input)
-                            nameSpan.textContent = data.baseSkill; // Set initial text
+                            nameSpan.textContent = data.baseSkill;
                             nameSpan.dataset.baseSkill = data.baseSkill;
                             if (data.basePercent !== undefined) nameSpan.dataset.basePercent = data.basePercent;
                             if (data.attribute) nameSpan.dataset.attribute = data.attribute;
                             if (data.multiplier) nameSpan.dataset.multiplier = data.multiplier;
-                            nameSpan.style.display = ''; // Show span
-                            nameInput.style.display = 'none'; // Hide input
+                            nameSpan.style.display = '';
+                            nameInput.style.display = 'none';
                         } else if (isCustom && nameSpan && nameInput) {
-                            // Populate custom skill (using input, hide span)
                             nameInput.value = data.name;
-                            nameInput.dataset.baseSkill = data.name; // Store name as baseSkill identifier
+                            nameInput.dataset.baseSkill = data.name;
                             if (data.basePercent !== undefined) nameInput.dataset.basePercent = data.basePercent;
-                            nameInput.style.display = ''; // Show input
-                            nameSpan.style.display = 'none'; // Hide span
+                            nameInput.style.display = '';
+                            nameSpan.style.display = 'none';
                         } else {
                             console.warn("Could not determine skill type or find elements for skill entry:", data, "in container:", containerId);
                         }
 
                         if (rankInput) {
                              if (data.rank !== undefined) rankInput.value = data.rank;
-                             // Call updateSkillPercentage AFTER potentially setting name/baseSkill
-                             updateSkillPercentage(rankInput);
+                             updateSkillPercentage(rankInput); // Call AFTER setting name/baseSkill
                         } else {
                             console.warn("Could not find rankInput for skill entry:", data);
                         }
@@ -998,10 +1021,9 @@
                         if (dmgInput && data.damage !== undefined) dmgInput.value = data.damage;
                         if (notesTextarea && data.notes !== undefined) notesTextarea.value = data.notes;
 
-                        // Ensure auto-expand after setting value
                         if (nameTextarea) autoExpandTextarea(nameTextarea);
                         if (notesTextarea) autoExpandTextarea(notesTextarea);
-                        updateStrDamageModifiers(); // Update STR mod display
+                        updateStrDamageModifiers();
 
                     } else if (newEntry.querySelector('input[placeholder="Item Slot"]')) { // Inventory Slot
                         const itemInput = newEntry.querySelector('input[placeholder="Item Slot"]');
@@ -1018,18 +1040,15 @@
                  if (newEntry.classList.contains('skill-entry')) {
                      const nameSpan = newEntry.querySelector('.skill-name-display');
                      const nameInput = newEntry.querySelector('.skill-name-input');
-                     // --- UPDATED: Show input immediately for *any* new skill entry ---
                      if (nameSpan && nameInput) {
-                         nameSpan.style.display = 'none'; // Hide span
-                         nameInput.style.display = ''; // Show input
-                         nameInput.focus(); // Focus the input for easy typing
+                         nameSpan.style.display = 'none';
+                         nameInput.style.display = '';
+                         nameInput.focus();
                      }
-                     // Ensure XP updates when adding a blank skill
-                     updateXpSpent();
                  }
-                 // Ensure XP updates when adding a blank weapon
-                 if (newEntry.classList.contains('weapon-entry')) {
-                     updateXpSpent();
+                 // Ensure XP updates when adding a blank skill or weapon
+                 if (newEntry.classList.contains('skill-entry') || newEntry.classList.contains('weapon-entry')) {
+                     updateUnspentXpAndWarnings(); // Use the new XP update function
                  }
             }
 
@@ -1043,12 +1062,11 @@
                 const isSkill = entry.classList.contains('skill-entry');
                 const isWeapon = entry.classList.contains('weapon-entry');
                 entry.remove();
-                // Update XP Spent if a skill or weapon was removed
+                // Update Unspent XP if a skill or weapon was removed
                 if (isSkill || isWeapon) {
-                    updateXpSpent();
+                    updateUnspentXpAndWarnings(); // Use the new XP update function
                 }
-                 // Save after removing an entry
-                 debouncedSave();
+                 debouncedSave(); // Save after removing an entry
             }
         }
 
@@ -1088,15 +1106,13 @@
             if (data && data.items) {
                 const slotsContainer = document.getElementById(slotsContainerId);
                 if (slotsContainer) {
-                    // Clear any default slot added by the template if loading data
                     if (slotsContainer.querySelector('.dynamic-entry')) {
                         slotsContainer.innerHTML = '';
                     }
                     data.items.forEach(itemData => addEntry(slotsContainerId, inventorySlotTemplate, itemData));
                 }
             }
-            // Save after adding section (if not part of initial load/import)
-            if (!data) { // Only save if it's a user action, not during load
+            if (!data) {
                  debouncedSave();
             }
         }
@@ -1108,7 +1124,7 @@
              if (section && section.dataset.deletable === 'true') {
                  if (confirm('Are you sure you want to delete this entire section?')) {
                      section.remove();
-                     debouncedSave(); // Save after removing section
+                     debouncedSave();
                  }
              }
         }
@@ -1120,22 +1136,21 @@
             if (!titleContainer || !titleText || !titleInput) return;
 
             const saveEdit = () => {
-                if (titleInput && titleText) { // Ensure elements exist
+                if (titleInput && titleText) {
                     titleText.textContent = titleInput.value;
                     titleContainer.classList.remove('editing');
                     titleInput.onblur = null;
                     titleInput.onkeydown = null;
-                    debouncedSave(); // Save after editing title
+                    debouncedSave();
                 }
             };
 
             const cancelEdit = () => {
-                 if (titleInput && titleText) { // Ensure elements exist
-                    titleInput.value = titleText.textContent; // Revert input value
+                 if (titleInput && titleText) {
+                    titleInput.value = titleText.textContent;
                     titleContainer.classList.remove('editing');
                     titleInput.onblur = null;
                     titleInput.onkeydown = null;
-                    // No save needed on cancel
                  }
             }
 
@@ -1146,13 +1161,11 @@
                 titleContainer.classList.add('editing');
                 titleInput.focus();
                 titleInput.select();
-                // Save on blur (when focus is lost)
                 titleInput.onblur = saveEdit;
-                // Handle Enter/Escape keys
                 titleInput.onkeydown = (event) => {
                     if (event.key === 'Enter') {
-                        event.preventDefault(); // Prevent form submission if any
-                        titleInput.blur(); // Trigger saveEdit via blur
+                        event.preventDefault();
+                        titleInput.blur();
                     } else if (event.key === 'Escape') {
                         cancelEdit();
                     }
@@ -1161,14 +1174,13 @@
         }
         function changeSectionColor(colorInputElement) {
              colorInputElement.closest('.section-header')?.style.setProperty('background-color', colorInputElement.value);
-             // Save is triggered by the main event listener
+             debouncedSave(); // Save triggered by change listener
          }
         function getRandomColor() {
             const letters = '0123456789ABCDEF';
             let color = '#';
             for (let i = 0; i < 6; i++) {
-                // Generate slightly darker/less saturated colors
-                color += letters[Math.floor(Math.random() * 12)]; // Use 0-B instead of 0-F
+                color += letters[Math.floor(Math.random() * 12)];
             }
             return color;
         }
@@ -1179,7 +1191,6 @@
             if (container) {
                 container.classList.toggle('delete-mode-active');
                 buttonElement.classList.toggle('active');
-                // No save needed for toggling delete mode itself
             }
         }
 
@@ -1194,50 +1205,39 @@
             diceString = String(diceString || '0').toLowerCase().replace(/\s+/g, '');
             let numDice = 0, numSides = 0, flatModifier = 0, sign = '+';
 
-            // Extract sign if present at the beginning
             if (diceString.startsWith('+') || diceString.startsWith('-')) {
                 sign = diceString[0];
                 diceString = diceString.substring(1);
             }
 
-            // Match dice notation (e.g., "2d6", "d10")
             const diceRegex = /(\d+)?d(\d+)/;
             const diceMatch = diceString.match(diceRegex);
 
             if (diceMatch) {
                 numDice = diceMatch[1] ? parseInt(diceMatch[1]) : 1;
                 numSides = parseInt(diceMatch[2]);
-                // Remove the dice part from the string to find the modifier
                 diceString = diceString.replace(diceRegex, '').trim();
             }
 
-            // Check for remaining part as flat modifier
             if (diceString) {
-                 // Handle modifier signs explicitly
                  if (diceString.startsWith('+')) {
                      flatModifier = parseInt(diceString.substring(1)) || 0;
                  } else if (diceString.startsWith('-')) {
                      flatModifier = -(parseInt(diceString.substring(1)) || 0);
                  } else if (!isNaN(parseInt(diceString))) {
-                     // If no sign, assume positive modifier *if* dice were present,
-                     // otherwise it's just a flat number
                      if (diceMatch) {
                          flatModifier = parseInt(diceString);
                      } else {
-                         // If no 'd' was found, the whole initial string (after sign removal) is the flat modifier
                          flatModifier = parseInt(diceString);
-                         // If the original string was just a sign, modifier is 0
                          if (isNaN(flatModifier)) flatModifier = 0;
                      }
                  }
             }
 
-             // If no dice and no modifier found, but the original string was just a number
              if (numDice === 0 && flatModifier === 0 && !isNaN(parseInt(diceString))) {
                  flatModifier = parseInt(diceString);
              }
 
-             // If the original string was just a sign (e.g., "+"), treat as 0
              if (numDice === 0 && flatModifier === 0 && (diceString === '+' || diceString === '-')) {
                  flatModifier = 0;
              }
@@ -1266,13 +1266,11 @@
             } else if (parsedResult.flatModifier !== 0) {
                 rollsString = `${parsedResult.flatModifier}`;
             } else {
-                rollsString = "0"; // Explicitly show 0 if no dice and no modifier
+                rollsString = "0";
             }
 
-            // Apply the overall sign if needed (only affects the final value)
             if (parsedResult.sign === '-') {
                 totalValue = -totalValue;
-                // Add sign to the string representation unless it's just "0"
                 if (rollsString !== "0") {
                      rollsString = parsedResult.sign + rollsString;
                 }
@@ -1292,7 +1290,7 @@
 
         // --- Dice Roller & Related Functions ---
         const dicePopup = document.getElementById('dice-result-popup');
-        let currentRoller = null; // Track which button opened the popup
+        let currentRoller = null;
 
         function showDicePopup(content) {
             if(dicePopup) {
@@ -1303,7 +1301,6 @@
             }
         }
 
-        // Generic function to close the dice popup
         function closeDicePopup() {
              if (dicePopup) {
                  dicePopup.style.display = 'none';
@@ -1312,8 +1309,7 @@
         }
 
         function rollPercentile(buttonElement) {
-            if (!dicePopup) return; // Prevent errors if popup missing
-            // If the same button is clicked again while popup is open, close it
+            if (!dicePopup) return;
             if (currentRoller === buttonElement && dicePopup.style.display === 'block') {
                 closeDicePopup();
                 return;
@@ -1321,68 +1317,59 @@
 
             const entry = buttonElement.closest('.dynamic-entry');
             const skillPercentDisplay = entry?.querySelector('.skill-percent-display');
-            // Read the *current* value, considering modifiers
             const skillValue = skillPercentDisplay ? parseInt(skillPercentDisplay.value) || 0 : 0;
             const skillNameElement = entry?.querySelector('.skill-name-display') || entry?.querySelector('.skill-name-input');
             let skillName = "Skill";
             if (skillNameElement) {
-                // Prioritize baseSkill for predefined, then input value for custom
                 skillName = skillNameElement.dataset.baseSkill || (skillNameElement.tagName === 'INPUT' ? skillNameElement.value : skillNameElement.textContent.split(' (')[0]) || "Skill";
             }
 
             const roll = rollSingleDie(100);
-            const success = roll <= skillValue && roll < 100; // 100 is always fumble
-            const resultColor = success ? '#4ade80' : '#f87171'; // Green for success, Red for fail/fumble
+            const success = roll <= skillValue && roll < 100;
+            const resultColor = success ? '#4ade80' : '#f87171';
 
             let popupContent = `<span style="color:${resultColor}; font-weight: bold;">${roll}</span> <span class="text-xs ml-2">vs ${skillValue}% (${skillName})</span>`;
 
             if (roll === 100) {
                 popupContent += `<span class="fumble-roll-text">Fumble!</span>`;
-            } else if (roll <= 5 && success) { // Check for critical success (example: roll <= 5)
+            } else if (roll <= 5 && success) {
                  popupContent += `<span class="critical-roll-text">Critical!</span>`;
-            } else if (!success) {
-                // Optional: Add specific text for failure?
-                // popupContent += ` (Fail)`;
             }
 
-
             showDicePopup(popupContent);
-            currentRoller = buttonElement; // Set the current roller
+            currentRoller = buttonElement;
         }
 
         function rollCharacteristic(buttonElement, charName) {
              if (!dicePopup) return;
-             // If the same button is clicked again while popup is open, close it
              if (currentRoller === buttonElement && dicePopup.style.display === 'block') {
                  closeDicePopup();
                  return;
              }
 
             const percentDisplay = document.getElementById(`${charName}-percent`);
-            // Read the *current* value from the display, considering modifiers
             let charValue = percentDisplay ? parseInt(percentDisplay.value.replace('%','')) || 0 : 0;
             const charLabel = charName.toUpperCase();
 
             const roll = rollSingleDie(100);
-            const success = roll <= charValue && roll < 100; // 100 is always fumble
-            const resultColor = success ? '#4ade80' : '#f87171'; // Green for success, Red for fail/fumble
+            const success = roll <= charValue && roll < 100;
+            const resultColor = success ? '#4ade80' : '#f87171';
 
             let popupContent = `<span style="color:${resultColor}; font-weight: bold;">${roll}</span> <span class="text-xs ml-2">vs ${charValue}% (${charLabel})</span>`;
 
              if (roll === 100) {
                  popupContent += `<span class="fumble-roll-text">Fumble!</span>`;
-             } else if (roll <= 5 && success) { // Check for critical success (example: roll <= 5)
+             } else if (roll <= 5 && success) {
                  popupContent += `<span class="critical-roll-text">Critical!</span>`;
              }
 
              showDicePopup(popupContent);
-             currentRoller = buttonElement; // Set the current roller
+             currentRoller = buttonElement;
         }
 
 
         function rollWeaponAttack(buttonElement) {
              if (!dicePopup) return;
-             // If the same button is clicked again while popup is open, close it
              if (currentRoller === buttonElement && dicePopup.style.display === 'block') {
                  closeDicePopup();
                  return;
@@ -1394,85 +1381,69 @@
              const dmgInput = entry?.querySelector('.dmg-input');
              const baseDmgString = dmgInput?.value || '0';
              const strModElement = entry?.querySelector('.str-dmg-mod');
-             const strModString = strModElement ? strModElement.textContent : '(+0)'; // e.g., "(+1d4)" or "(-1d6)"
+             const strModString = strModElement ? strModElement.textContent : '(+0)';
 
-             const weaponType = entry?.dataset.weaponType; // 'melee' or 'ranged'
+             const weaponType = entry?.dataset.weaponType;
              const weaponSkillInput = entry?.querySelector('.skill-percent-input');
              const weaponSkillValue = weaponSkillInput ? parseInt(weaponSkillInput.value) || 0 : 0;
 
-             // Find the corresponding base combat skill (Melee or Range)
              const baseCombatSkillSelector = weaponType === 'melee'
-                 ? '#combat-skills-display .skill-entry [data-base-skill="Melee"]' // Target the span/input with the data attribute
+                 ? '#combat-skills-display .skill-entry [data-base-skill="Melee"]'
                  : '#combat-skills-display .skill-entry [data-base-skill="Range"]';
              const baseCombatSkillElement = document.querySelector(baseCombatSkillSelector);
              const baseSkillPercentDisplay = baseCombatSkillElement?.closest('.skill-entry')?.querySelector('.skill-percent-display');
-             // Read the *current* value of the base skill, considering modifiers
              const baseSkillValue = baseSkillPercentDisplay ? parseInt(baseSkillPercentDisplay.value) || 0 : 0;
 
-             // --- UPDATED: Calculate total attack skill ---
-             // Base skill contribution is capped at 75% (unless naturally higher, though unlikely with current rules)
              const effectiveBase = Math.min(baseSkillValue, 75);
-             // Add the weapon's specific percentage bonus on top
              const totalSkillValue = effectiveBase + weaponSkillValue;
-             // Note: The final totalSkillValue can exceed 75% due to the weapon bonus.
 
-             // --- Roll the Attack ---
              const roll = rollSingleDie(100);
              let specialResultText = "";
-             let isCrit = roll <= 2; // Critical on 1 or 2
-             let isSpecial = roll >= 3 && roll <= 15; // Special effect on 3-15
-             let isFumble = roll >= 96; // Fumble on 96-100
-             // Determine success: hit if roll <= totalSkillValue AND not a fumble, OR if it's a crit (crit always hits if skill > 0)
+             let isCrit = roll <= 2;
+             let isSpecial = roll >= 3 && roll <= 15;
+             let isFumble = roll >= 96;
              let success = (roll <= totalSkillValue && !isFumble) || (isCrit && totalSkillValue > 0);
 
-             const resultColor = success ? '#4ade80' : '#f87171'; // Green for success, Red for fail/fumble
+             const resultColor = success ? '#4ade80' : '#f87171';
              let popupContent = `<span style="font-weight: bold;">${weaponName}: </span>`;
              popupContent += `<span style="color:${resultColor}; font-weight: bold;">${roll}</span> <span class="text-xs ml-1">vs ${totalSkillValue}%</span>`;
 
-             // --- Determine Outcome and Damage ---
              if (isFumble) {
                  specialResultText = `<span class="fumble-roll-text">Fumble!</span>`;
-                 success = false; // Ensure fumble overrides success
+                 success = false;
                  popupContent += specialResultText;
                  popupContent += `\n<span style="font-size: 0.9em;">Attack fails!</span>`;
              } else if (success) {
-                 const hitLocation = getHitLocation(); // Determine hit location
+                 const hitLocation = getHitLocation();
                  let totalFinalDamage = 0;
                  let damageResultString = "";
 
-                 // Parse base damage and STR modifier strings
                  const parsedBaseDmg = parseDiceString(baseDmgString);
-                 const parsedStrMod = parseDiceString(strModString.replace(/[()]/g, '')); // Remove parentheses before parsing
+                 const parsedStrMod = parseDiceString(strModString.replace(/[()]/g, ''));
 
                  if (isCrit) {
                      specialResultText = `<span class="critical-roll-text">Critical! Bypass Armor!</span>`;
-                     // Calculate max possible damage (max dice roll + modifier)
                      const maxBase = getMaxParsedDice(parsedBaseDmg);
                      const maxMod = getMaxParsedDice(parsedStrMod);
-                     totalFinalDamage = Math.max(0, maxBase + maxMod); // Ensure damage isn't negative
+                     totalFinalDamage = Math.max(0, maxBase + maxMod);
                      damageResultString = `Max ${baseDmgString}${strModString} = <span style="font-weight:bold;">${totalFinalDamage}</span> Damage`;
                  } else if (isSpecial) {
                      specialResultText = `<span class="special-roll-text">Special! Max Damage!</span>`;
-                     // Calculate max possible damage
                      const maxBase = getMaxParsedDice(parsedBaseDmg);
                      const maxMod = getMaxParsedDice(parsedStrMod);
                      totalFinalDamage = Math.max(0, maxBase + maxMod);
                      damageResultString = `Max ${baseDmgString}${strModString} = <span style="font-weight:bold;">${totalFinalDamage}</span> Damage`;
                  } else {
-                     // Normal Hit: Roll base damage and add modifier
                      const { totalValue: rolledBase, rollsString: baseRolls } = rollParsedDice(parsedBaseDmg);
                      const { totalValue: rolledMod, rollsString: modRolls } = rollParsedDice(parsedStrMod);
-                     totalFinalDamage = Math.max(0, rolledBase + rolledMod); // Ensure damage isn't negative
+                     totalFinalDamage = Math.max(0, rolledBase + rolledMod);
 
-                     // Construct the damage string
                      damageResultString = baseRolls;
-                     // Append modifier string if it exists and isn't "0"
                      if (modRolls && modRolls !== "0") {
-                         // Add appropriate sign/spacing
                          if (!modRolls.startsWith('+') && !modRolls.startsWith('-')) {
                              damageResultString += " + ";
                          } else {
-                             damageResultString += " "; // Add space if sign is present
+                             damageResultString += " ";
                          }
                          damageResultString += modRolls;
                      }
@@ -1480,12 +1451,12 @@
                  }
                  popupContent += specialResultText;
                  popupContent += `\n<span style="font-size: 0.9em;">${damageResultString} to <span style="font-weight:bold;">${hitLocation}</span></span>`;
-             } else { // Failed roll (not a fumble)
+             } else {
                  popupContent += `\n<span style="font-size: 0.9em;">Miss!</span>`;
              }
 
              showDicePopup(popupContent);
-             currentRoller = buttonElement; // Set the current roller
+             currentRoller = buttonElement;
         }
 
 
@@ -1511,7 +1482,7 @@
         const hpCurrentInputs = document.querySelectorAll('.hp-current');
 
         const hpTable = { // CON score 1-21+
-            head:    [0,1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7], // Index 0 is unused (CON 0)
+            head:    [0,1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7],
             arm:     [0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6],
             chest:   [0,1,2,2,2,3,3,4,4,4,5,5,5,6,6,6,7,7,8,8,8,9],
             abdomen: [0,1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7],
@@ -1519,7 +1490,6 @@
         };
 
         function calculateHp(conScore) {
-            // Clamp CON score between 1 and 21 for table lookup
             const score = Math.max(1, Math.min(21, parseInt(conScore) || 0));
             return {
                 head: hpTable.head[score], arm: hpTable.arm[score], chest: hpTable.chest[score],
@@ -1528,45 +1498,40 @@
         }
 
         function updateHpDisplay() {
-            const conScore = conInput ? conInput.value : '0'; // Add null check
+            const conScore = conInput ? conInput.value : '0';
             const hpValues = calculateHp(conScore);
             hpMaxElements.forEach(span => {
-                if (span) { // Add null check
+                if (span) {
                     const location = span.dataset.location;
                     if (hpValues[location] !== undefined) span.textContent = hpValues[location];
                 }
             });
             hpCurrentInputs.forEach(input => {
-                 if (input) { // Add null check
+                 if (input) {
                     const location = input.dataset.location;
                     if (hpValues[location] !== undefined) {
                         const currentVal = parseInt(input.value);
                         const maxVal = hpValues[location];
-                        // Reset to max only if current value is invalid or higher than new max
-                        // OR if the input is currently empty (e.g., after reset)
-                        // *** Use the input's ID to check if it has been loaded/set ***
                         const isLoaded = document.getElementById(input.id)?.dataset.loaded === 'true';
                         if (!isLoaded && (isNaN(currentVal) || currentVal > maxVal || input.value === '')) {
                             input.value = maxVal;
                         }
-                        input.max = maxVal; // Update max attribute for potential browser validation
+                        input.max = maxVal;
                     }
                  }
             });
-             // Save is triggered by the input event listener on the CON input
+             // Save triggered by input listener on CON
         }
 
         function getStrDamageModifier(strScore) {
             const score = parseInt(strScore) || 0;
-            if (score <= 2) return "(-?)";    // Very weak
-            if (score <= 6) return "(-1d6)";  // Weak
-            if (score <= 8) return "(-1d4)";  // Below Average
-            if (score <= 12) return "(+0)";   // Average
-            if (score <= 16) return "(+1d4)"; // Above Average
-            if (score <= 20) return "(+2d4)"; // Strong
-            // For scores above 20, add +1d4 for every 10 points (or fraction thereof) starting from 21
-            // 21-29: +3d4, 30-39: +4d4, etc.
-            let diceCount = 2; // Base for 17-20
+            if (score <= 2) return "(-?)";
+            if (score <= 6) return "(-1d6)";
+            if (score <= 8) return "(-1d4)";
+            if (score <= 12) return "(+0)";
+            if (score <= 16) return "(+1d4)";
+            if (score <= 20) return "(+2d4)";
+            let diceCount = 2;
             if (score > 20) {
                  diceCount = 2 + Math.ceil((score - 20) / 10);
             }
@@ -1575,28 +1540,26 @@
 
 
         function updateStrDamageModifiers() {
-            const strScore = strInput ? strInput.value : '0'; // Add null check
+            const strScore = strInput ? strInput.value : '0';
             const modifierString = getStrDamageModifier(strScore);
             const modifierElements = document.querySelectorAll('.str-dmg-mod');
             modifierElements.forEach(el => {
-                if (el) el.textContent = modifierString; // Add null check
+                if (el) el.textContent = modifierString;
             });
-            // Save is triggered by the input event listener on the STR input
+             // Save triggered by input listener on STR
         }
 
         // --- Skill Percentage Calculation ---
         function updateSkillPercentage(rankInputElement) {
-            if (!rankInputElement) return; // Add null check for input element
+            if (!rankInputElement) return;
             const entry = rankInputElement.closest('.skill-entry');
             if (!entry) return;
 
             const nameSpan = entry.querySelector('.skill-name-display');
             const nameInput = entry.querySelector('.skill-name-input');
             const percentDisplay = entry.querySelector('.skill-percent-display');
-            // Choose the correct element for skill details based on visibility or existence
             const detailSourceElement = (nameSpan && nameSpan.style.display !== 'none') ? nameSpan : nameInput;
 
-            // Ensure we have a source for details and a display element
             if (!detailSourceElement || !percentDisplay) {
                 console.warn("Missing detail source or percent display element in skill entry:", entry);
                 return;
@@ -1607,10 +1570,9 @@
             const attribute = detailSourceElement.dataset.attribute;
             const multiplier = parseInt(detailSourceElement.dataset.multiplier) || 1;
 
-            // Calculate base percentage from attribute if applicable
             if (attribute) {
                 const attrInput = document.getElementById(attribute.toLowerCase());
-                if (attrInput) { // Check if attribute input exists
+                if (attrInput) {
                     const attrValue = parseInt(attrInput.value) || 0;
                     basePercent = attrValue * multiplier;
                 } else {
@@ -1618,89 +1580,142 @@
                 }
             }
 
-            const finalPercent = Math.min(100, basePercent + rank); // Cap at 100%
-            percentDisplay.value = finalPercent; // Update the readonly display value
+            const finalPercent = Math.min(100, basePercent + rank);
+            percentDisplay.value = finalPercent;
 
-            // Update the text content of the span if it's visible and attribute-based
             if (attribute && nameSpan && nameSpan.style.display !== 'none') {
                  const baseSkillName = nameSpan.dataset.baseSkill || attribute;
                  const attrInput = document.getElementById(attribute.toLowerCase());
-                 const attrValue = attrInput ? (parseInt(attrInput.value) || 0) : 0; // Handle missing attribute input
+                 const attrValue = attrInput ? (parseInt(attrInput.value) || 0) : 0;
                  const currentBase = attrValue * multiplier;
-                 nameSpan.textContent = `${baseSkillName} (${currentBase}%)`; // Show base % in brackets
+                 nameSpan.textContent = `${baseSkillName} (${currentBase}%)`;
             } else if (nameSpan && nameSpan.style.display !== 'none' && !attribute) {
-                 // Update span text for non-attribute skills (like First Aid)
                  const baseSkillName = nameSpan.dataset.baseSkill || "Skill";
                  nameSpan.textContent = `${baseSkillName} (${basePercent}%)`;
             }
 
-             applySkillModifiers(); // Re-apply Shift/Ctrl modifiers if active
-             updateXpSpent(); // Update total XP spent
-             // Save is triggered by the input event listener on the rank input
+             applySkillModifiers();
+             updateUnspentXpAndWarnings(); // Use the new XP update function
+             // Save triggered by input listener on rank input
         }
 
 
         function updateDynamicSkillLabel(inputElement) {
-             if (!inputElement) return; // Add null check
-            // When the user types in a custom skill name, update its dataset for consistency
-            // This dataset value is used as the identifier when saving/loading
+             if (!inputElement) return;
             inputElement.dataset.baseSkill = inputElement.value;
             const entry = inputElement.closest('.skill-entry');
             if (entry) {
                 const rankInput = entry.querySelector('.skill-rank-input');
-                if (rankInput) updateSkillPercentage(rankInput); // Recalculate percentage
+                if (rankInput) updateSkillPercentage(rankInput);
             }
-             // Save is triggered by the input event listener on the name input
+             // Save triggered by input listener on name input
         }
 
         function updateAllSkillPercentages() {
-            // This function is called when STR/DEX/CON changes, recalculating all skills
             document.querySelectorAll('.skill-rank-input').forEach(updateSkillPercentage);
-            // Save is triggered by the input event listener on STR/DEX/CON
+            // Save triggered by input listener on STR/DEX/CON
         }
 
-        // --- XP Spent Calculation ---
-        function updateXpSpent() {
-            const xpEarnedInput = document.getElementById('char-experience');
-            const xpSpentInput = document.getElementById('xp-spent');
-            if (!xpEarnedInput || !xpSpentInput) return;
+        // --- NEW: XP Calculation and Warnings ---
+        function updateUnspentXpAndWarnings() {
+            const xpInput = document.getElementById('char-experience');
+            const unspentXpInput = document.getElementById('unspent-xp');
+            const classSelect = document.getElementById('char-class-select');
+            const warningSpan = document.getElementById('class-xp-warning');
 
-            let totalSpent = 0;
-            // Sum ranks from all skill types
+            if (!xpInput || !unspentXpInput || !classSelect || !warningSpan) {
+                 console.error("Missing XP or Class elements for calculation.");
+                 return;
+            }
+
+            const selectedClass = classSelect.value;
+            let baseXp = 0;
+            let requiredKnowledgeCraftXp = 0;
+            let warningMessage = "";
+
+            // Determine Base XP and requirements based on class
+            switch (selectedClass) {
+                case 'Wretch':
+                case 'Serf':
+                case 'Commoner':
+                    baseXp = 250;
+                    break;
+                case 'Gentleman':
+                    baseXp = 300;
+                    requiredKnowledgeCraftXp = 50;
+                    warningMessage = `Gentlemen must spend ${requiredKnowledgeCraftXp} XP on Knowledge or Crafts.`;
+                    break;
+                case 'Noble':
+                    baseXp = 350;
+                    requiredKnowledgeCraftXp = 100;
+                    warningMessage = `Nobles must spend ${requiredKnowledgeCraftXp} XP on Knowledge or Crafts.`;
+                    break;
+            }
+
+            const additionalXp = parseInt(xpInput.value) || 0;
+            let totalSpentXp = 0;
+            let knowledgeCraftXpSpent = 0;
+
+            // Sum ranks from all skill types (Core, Knowledge, Craft/Art, Combat)
             document.querySelectorAll('.skill-entry .skill-rank-input').forEach(input => {
-                if (input) totalSpent += parseInt(input.value) || 0; // Add null check
+                if (input) {
+                    const spent = parseInt(input.value) || 0;
+                    totalSpentXp += spent;
+                    // Check if the skill is in Knowledge or Craft/Art containers
+                    // *** MODIFIED: Check parent section ID instead of content ID ***
+                    const parentSection = input.closest('.styled-section[data-section-id="skills"]');
+                    const skillContainer = input.closest('.section-content > div > div'); // Get the direct container (e.g., #knowledge-container)
+                    if (parentSection && skillContainer && (skillContainer.id === 'knowledge-container' || skillContainer.id === 'craft-art-container')) {
+                        knowledgeCraftXpSpent += spent;
+                    }
+                }
             });
+
             // Sum percentages from weapon skills
             document.querySelectorAll('.weapon-entry .skill-percent-input').forEach(input => {
-                if (input) totalSpent += parseInt(input.value) || 0; // Add null check
+                if (input) totalSpentXp += parseInt(input.value) || 0;
             });
 
-            xpSpentInput.value = totalSpent;
-            const earned = parseInt(xpEarnedInput.value) || 0;
-            // Update styling based on comparison
-            xpSpentInput.classList.remove('xp-spent-over', 'xp-spent-equal', 'xp-spent-under');
-            if (totalSpent > earned) xpSpentInput.classList.add('xp-spent-over');
-            else if (totalSpent === earned && earned > 0) xpSpentInput.classList.add('xp-spent-equal'); // Only green if earned > 0
-            else xpSpentInput.classList.add('xp-spent-under');
-            // Save is triggered by the input event listener on XP Earned, skill ranks, or weapon %
+            const unspentXp = baseXp + additionalXp - totalSpentXp;
+
+            // Update Unspent XP display and styling
+            unspentXpInput.classList.remove('xp-remaining-positive', 'xp-remaining-negative', 'xp-remaining-zero');
+            if (unspentXp > 0) {
+                unspentXpInput.value = unspentXp;
+                unspentXpInput.classList.add('xp-remaining-positive');
+            } else if (unspentXp < 0) {
+                unspentXpInput.value = `- ${Math.abs(unspentXp)}`; // Add minus sign
+                unspentXpInput.classList.add('xp-remaining-negative');
+            } else { // unspentXp === 0
+                unspentXpInput.value = '0';
+                unspentXpInput.classList.add('xp-remaining-zero');
+            }
+
+            // *** MODIFIED: Update Class Warning message logic ***
+            // Show warning ONLY if class requires it AND the requirement is NOT met
+            if (requiredKnowledgeCraftXp > 0 && knowledgeCraftXpSpent < requiredKnowledgeCraftXp) {
+                warningSpan.textContent = warningMessage;
+            } else {
+                warningSpan.textContent = ''; // Clear warning if requirement met or not applicable
+            }
+
+            // Save triggered by the input/change listeners that call this function
         }
 
 
         function updatePercentages() {
-            // Ensure characteristic inputs exist before accessing value
             const str = strInput ? parseInt(strInput.value) || 0 : 0;
             const dex = dexInput ? parseInt(dexInput.value) || 0 : 0;
             const con = conInput ? parseInt(conInput.value) || 0 : 0;
 
-            // Ensure percent display elements exist
             if (strPercent) strPercent.value = `${Math.min(100, str * 5)}%`;
             if (dexPercent) dexPercent.value = `${Math.min(100, dex * 5)}%`;
             if (conPercent) conPercent.value = `${Math.min(100, con * 5)}%`;
 
-            updateAllSkillPercentages(); // Recalculate all skill % based on new attributes
-            updateStrDamageModifiers(); // Update weapon damage modifiers based on new STR
+            updateAllSkillPercentages(); // Recalculates skills, which calls updateUnspentXpAndWarnings
+            updateStrDamageModifiers();
             applySkillModifiers(); // Re-apply shift/ctrl modifiers
-            // Save is triggered by the input event listener on STR/DEX/CON
+            // Save triggered by input listener on STR/DEX/CON
         }
 
         // --- Key Press Modifiers (Shift/Ctrl for temporary skill adjustments) ---
@@ -1714,10 +1729,8 @@
                 const rankInput = entry.querySelector('.skill-rank-input');
                 const nameSpan = entry.querySelector('.skill-name-display');
                 const nameInput = entry.querySelector('.skill-name-input');
-                // Choose the correct element for skill details based on visibility or existence
                 const detailSourceElement = (nameSpan && nameSpan.style.display !== 'none') ? nameSpan : nameInput;
 
-                // Add checks for all necessary elements
                 if (!percentDisplay || !rankInput || !detailSourceElement) return;
 
                 let basePercent = parseInt(detailSourceElement.dataset.basePercent) || 0;
@@ -1725,101 +1738,83 @@
                 const multiplier = parseInt(detailSourceElement.dataset.multiplier) || 1;
                 if (attribute) {
                     const attrInput = document.getElementById(attribute.toLowerCase());
-                    if (attrInput) { // Check attribute input exists
+                    if (attrInput) {
                         basePercent = (parseInt(attrInput.value) || 0) * multiplier;
                     }
                 }
                 const rank = parseInt(rankInput.value) || 0;
-                let currentPercent = basePercent + rank; // Base calculation
+                let currentPercent = basePercent + rank;
 
-                percentDisplay.classList.remove('modifier-shift', 'modifier-ctrl'); // Reset styles
-                // Apply modifiers
+                percentDisplay.classList.remove('modifier-shift', 'modifier-ctrl');
                 if (isShiftPressed) {
-                    currentPercent = Math.min(100, currentPercent * 2); // Double, cap at 100
+                    currentPercent = Math.min(100, currentPercent * 2);
                     percentDisplay.classList.add('modifier-shift');
                 } else if (isCtrlPressed) {
-                    currentPercent = Math.ceil(currentPercent / 2); // Halve, round up
+                    currentPercent = Math.ceil(currentPercent / 2);
                     percentDisplay.classList.add('modifier-ctrl');
                 }
-                percentDisplay.value = Math.min(100, currentPercent); // Update display, ensure cap
+                percentDisplay.value = Math.min(100, currentPercent);
             });
 
             // Apply to Characteristics
             ['str', 'dex', 'con'].forEach(charName => {
                 const percentDisplay = document.getElementById(`${charName}-percent`);
                 const charInput = document.getElementById(charName);
-                // Add checks for both elements
                 if (!percentDisplay || !charInput) return;
 
                 let baseValue = parseInt(charInput.value) || 0;
-                let currentPercent = Math.min(100, baseValue * 5); // Base calculation
+                let currentPercent = Math.min(100, baseValue * 5);
 
-                percentDisplay.classList.remove('modifier-shift', 'modifier-ctrl'); // Reset styles
-                 // Apply modifiers
+                percentDisplay.classList.remove('modifier-shift', 'modifier-ctrl');
                  if (isShiftPressed) {
-                    currentPercent = Math.min(100, currentPercent * 2); // Double, cap at 100
+                    currentPercent = Math.min(100, currentPercent * 2);
                     percentDisplay.classList.add('modifier-shift');
                 } else if (isCtrlPressed) {
-                    currentPercent = Math.ceil(currentPercent / 2); // Halve, round up
+                    currentPercent = Math.ceil(currentPercent / 2);
                     percentDisplay.classList.add('modifier-ctrl');
                 }
-                percentDisplay.value = `${Math.min(100, currentPercent)}%`; // Update display, ensure cap
+                percentDisplay.value = `${Math.min(100, currentPercent)}%`;
             });
         }
 
 
         document.addEventListener('keydown', (event) => {
-            // console.log(`Keydown: ${event.key}, Shift: ${event.shiftKey}, Ctrl: ${event.ctrlKey}, Active Element: ${document.activeElement.tagName}`); // DEBUGGING
-
-            // Ignore modifier keys if focus is inside an input/textarea
             if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
-                 // console.log("Keydown ignored: Input/Textarea has focus."); // DEBUGGING
                  return;
             }
 
             let modifierChanged = false;
-            // Check the key property directly
             if (event.key === 'Shift' && !isShiftPressed) {
                 isShiftPressed = true;
                 modifierChanged = true;
-                // console.log("Shift pressed - applying modifiers."); // DEBUGGING
             }
             if (event.key === 'Control' && !isCtrlPressed) {
                 isCtrlPressed = true;
                 modifierChanged = true;
-                 // console.log("Control pressed - applying modifiers."); // DEBUGGING
             }
 
             if (modifierChanged) {
-                 // Only prevent default if a modifier key we care about was pressed
-                 // event.preventDefault(); // Consider removing this if it causes issues
                  applySkillModifiers();
             }
         });
 
         document.addEventListener('keyup', (event) => {
-             // console.log(`Keyup: ${event.key}`); // DEBUGGING
-
              let modifierChanged = false;
             if (event.key === 'Shift') {
                 isShiftPressed = false;
                 modifierChanged = true;
-                // console.log("Shift released - reverting modifiers."); // DEBUGGING
             }
             if (event.key === 'Control') {
                 isCtrlPressed = false;
                 modifierChanged = true;
-                // console.log("Control released - reverting modifiers."); // DEBUGGING
             }
 
              if (modifierChanged) {
-                 applySkillModifiers(); // Revert to base values when key is released
+                 applySkillModifiers();
              }
         });
 
-        // Reset modifiers if the window loses focus
         window.addEventListener('blur', () => {
-            // console.log("Window blurred - resetting modifiers."); // DEBUGGING
             if (isShiftPressed || isCtrlPressed) {
                 isShiftPressed = false;
                 isCtrlPressed = false;
@@ -1829,33 +1824,28 @@
 
         // --- Class Change Handler ---
         function handleClassChange(selectElement) {
-            const xpInput = document.getElementById('char-experience');
-            if (!selectElement || !xpInput) return; // Add null checks
-
-            const selectedClass = selectElement.value;
-            // Update placeholder text based on class selection
-            if (selectedClass === 'Gentleman') xpInput.placeholder = "150 (100+50 Knowledge)";
-            else if (selectedClass === 'Noble') xpInput.placeholder = "200 (100+100 Knowledge)";
-            else xpInput.placeholder = "100";
-            // Save is triggered by the change event listener on the select element
+            // No longer need to update placeholder text
+            // Just trigger the XP calculation which depends on the class
+            updateUnspentXpAndWarnings();
+            // Save triggered by the change event listener on the select element
         }
 
         // --- Export/Import Functions ---
         function gatherSheetData() {
-            const data = { version: 3, sections: {} }; // Keep version consistent or increment if structure changes significantly
+            const data = { version: 4, sections: {} }; // Updated version
 
-            // Helper function to safely get element value
             const getVal = (id) => document.getElementById(id)?.value || '';
             const getTextAreaVal = (selector) => document.querySelector(selector)?.value || '';
-            const getSelectVal = (id) => document.getElementById(id)?.value || 'Commoner'; // Default class
+            const getSelectVal = (id) => document.getElementById(id)?.value || 'Commoner';
 
             // --- Header ---
             data.header = {
                 name: getVal('char-name'),
                 class: getSelectVal('char-class-select'),
                 profession: getVal('char-profession'),
-                xpEarned: getVal('char-experience') || '0',
+                xp: getVal('char-experience') || '', // Save the value from the XP input (formerly xpEarned)
                 goal: getVal('char-goal')
+                // Unspent XP is calculated, not saved
             };
 
             // --- Characteristics ---
@@ -1873,33 +1863,29 @@
 
             // --- Skills (Core, Knowledge, Craft/Art) ---
             data.skills = { core: [], knowledge: [], craftArt: [] };
-            // --- UPDATED: Consistent saving logic for all skill types ---
             function gatherSkillData(containerId, targetArray) {
                 document.querySelectorAll(`#${containerId} .skill-entry`).forEach(entry => {
                     const nameSpan = entry.querySelector('.skill-name-display');
                     const nameInput = entry.querySelector('.skill-name-input');
                     const rankInput = entry.querySelector('.skill-rank-input');
 
-                    if (rankInput && (nameSpan || nameInput)) { // Need rank and at least one name element
+                    if (rankInput && (nameSpan || nameInput)) {
                         const isUsingSpan = nameSpan && nameSpan.style.display !== 'none';
                         const detailSource = isUsingSpan ? nameSpan : nameInput;
 
-                        if (detailSource) { // Ensure we have a valid source
+                        if (detailSource) {
                             const skillData = {
                                 rank: rankInput.value || '0',
-                                // Save baseSkill if span is visible (predefined), otherwise save name from input (custom)
                                 baseSkill: isUsingSpan ? detailSource.dataset.baseSkill : undefined,
                                 name: !isUsingSpan ? detailSource.value : undefined,
-                                // Include basePercent only if it exists on the element
                                 basePercent: detailSource.dataset.basePercent ? detailSource.dataset.basePercent : undefined,
-                                attribute: detailSource.dataset.attribute, // Include if exists
-                                multiplier: detailSource.dataset.multiplier, // Include if exists
+                                attribute: detailSource.dataset.attribute,
+                                multiplier: detailSource.dataset.multiplier,
                             };
-                            // Clean up undefined properties before pushing
                             Object.keys(skillData).forEach(key => skillData[key] === undefined && delete skillData[key]);
                             targetArray.push(skillData);
                         } else {
-                             console.warn("Could not find detail source (span or input) for skill in container:", containerId, entry);
+                             console.warn("Could not find detail source for skill in container:", containerId, entry);
                         }
                     } else {
                          console.warn("Missing rank or name element for skill in container:", containerId, entry);
@@ -1908,11 +1894,11 @@
             }
             gatherSkillData('skills-container', data.skills.core);
             gatherSkillData('knowledge-container', data.skills.knowledge);
-            gatherSkillData('craft-art-container', data.skills.craftArt); // Use same logic for Craft/Art
+            gatherSkillData('craft-art-container', data.skills.craftArt);
 
             // --- Combat Details (Skills, Weapons, Hit Locations) ---
             data.combat = { skills: [], meleeWeapons: [], rangedWeapons: [], hitLocations: {} };
-            gatherSkillData('combat-skills-display', data.combat.skills); // Use same logic for Combat Skills
+            gatherSkillData('combat-skills-display', data.combat.skills);
 
             document.querySelectorAll('#melee-weapons-container .weapon-entry').forEach(entry => {
                  data.combat.meleeWeapons.push({
@@ -1926,38 +1912,34 @@
                  data.combat.rangedWeapons.push({
                      name: entry.querySelector('textarea[placeholder="Weapon Name"]')?.value || '',
                      percent: entry.querySelector('.skill-percent-input')?.value || '0',
-                     damage: entry.querySelector('.dmg-input')?.value || '', // Damage is now text
+                     damage: entry.querySelector('.dmg-input')?.value || '',
                      notes: entry.querySelector('textarea[placeholder="Notes"]')?.value || ''
                  });
             });
-            // Save Hit Location AP, HP, and Item
             document.querySelectorAll('.hit-location').forEach(loc => {
-                const locId = loc.dataset.loc; // e.g., "head", "l-arm"
+                const locId = loc.dataset.loc;
                 if (locId) {
                     data.combat.hitLocations[locId] = {
                         apCurrent: getVal(`${locId}-ap-current`) || '0',
                         apMax: getVal(`${locId}-ap-max`) || '0',
                         hpCurrent: getVal(`${locId}-hp-current`) || '0',
-                        item: getVal(`${locId}-item`) || '' // Save item field
+                        item: getVal(`${locId}-item`) || ''
                     };
                 }
             });
 
             // --- Inventory ---
             data.inventory = { backpack: [], satchel: '', coin: '0', dynamic: [] };
-            // Save backpack slots using their IDs
             for (let i = 1; i <= 5; i++) {
                 data.inventory.backpack.push(getVal(`backpack-slot-${i}`));
             }
-            // Save satchel content using its ID
             data.inventory.satchel = getTextAreaVal('#satchel-items');
             data.inventory.coin = getVal('coin') || '0';
-            // Save dynamic inventory sections
             document.querySelectorAll('#dynamic-inventory-container .dynamic-inventory-section').forEach(section => {
                 const header = section.querySelector('.section-header');
                 const dynamicSectionData = {
                     title: section.querySelector('.section-title-text')?.textContent || '',
-                    color: header?.style.backgroundColor || '', // Get inline style color
+                    color: header?.style.backgroundColor || '',
                     items: []
                 };
                 section.querySelectorAll('.dynamic-entry input[placeholder="Item Slot"]').forEach(itemInput => {
@@ -1982,26 +1964,22 @@
                  const titleText = section.querySelector('.section-title-text');
                  const header = section.querySelector('.section-header');
                  if (sectionId && titleText && header) {
-                     const defaultTitle = section.querySelector('.section-title-input')?.getAttribute('value'); // Original title from HTML
-                     const defaultColor = getComputedStyle(document.documentElement).getPropertyValue('--default-section-bg').trim(); // Default CSS variable color
+                     const defaultTitle = section.querySelector('.section-title-input')?.getAttribute('value');
+                     const defaultColor = getComputedStyle(document.documentElement).getPropertyValue('--default-section-bg').trim();
                      const currentTitle = titleText.textContent;
-                     const currentColor = header.style.backgroundColor; // Current inline style color
+                     const currentColor = header.style.backgroundColor;
 
                      let customization = {};
                      let hasCustomization = false;
-                     // Save title only if it's different from the default HTML value
                      if (defaultTitle && currentTitle !== defaultTitle) {
                           customization.title = currentTitle;
                           hasCustomization = true;
                      }
-                     // Save color only if it has an inline style set AND it's different from the CSS variable default
-                     // Check for rgb format which might be returned by computed style vs hex/named color set inline
                      const isColorSetAndDifferent = currentColor && currentColor !== defaultColor && header.style.backgroundColor !== '';
                      if (isColorSetAndDifferent) {
                           customization.color = currentColor;
                           hasCustomization = true;
                      }
-                     // Only add to customizations if title or color was actually changed
                      if (hasCustomization) {
                          data.sectionCustomizations[sectionId] = customization;
                      }
@@ -2015,18 +1993,18 @@
         function exportSheetData() {
             try {
                 const sheetData = gatherSheetData();
-                const jsonData = JSON.stringify(sheetData, null, 2); // Pretty print JSON
+                const jsonData = JSON.stringify(sheetData, null, 2);
                 const blob = new Blob([jsonData], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 const charName = document.getElementById('char-name')?.value || 'character';
-                const filename = `${charName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_winedark_sheet.json`; // Sanitize filename
+                const filename = `${charName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_winedark_sheet.json`;
                 link.href = url;
                 link.download = filename;
                 document.body.appendChild(link);
-                link.click(); // Trigger download
-                document.body.removeChild(link); // Clean up link
-                URL.revokeObjectURL(url); // Release object URL
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
                 showDicePopup("Sheet data exported successfully!");
             } catch (error) {
                 console.error("Error exporting sheet data:", error);
@@ -2042,32 +2020,30 @@
                 try {
                     const jsonData = e.target.result;
                     const data = JSON.parse(jsonData);
-                    // Basic validation
                     if (typeof data !== 'object' || data === null || !data.version) {
                          throw new Error("Invalid file format or missing version.");
                     }
-                    // Optional: Add more specific version checking if needed
-                    // if (data.version < 3) {
-                    //     throw new Error("Outdated file version. Please update the sheet first.");
-                    // }
-                    console.log("Importing data version:", data.version); // DEBUGGING
+                    // Check for compatible version (v4+)
+                    if (data.version < 4) {
+                         throw new Error(`Outdated file version (${data.version}). Requires version 4 or later.`);
+                    }
+                    console.log("Importing data version:", data.version);
 
-                    // --- IMPORTANT: Reset sheet state *before* populating ---
                     setDefaultSheetState(false); // Reset without recalc
-                    populateSheetData(data); // Populate DOM from imported data
+                    populateSheetData(data); // Populate DOM
 
                     // Recalculate everything *after* populating
                     updateHpDisplay();
                     updatePercentages();
-                    updateXpSpent();
+                    updateUnspentXpAndWarnings(); // Use new XP function
 
-                    saveSheetToLocalStorage(); // Save the newly imported data to local storage
+                    saveSheetToLocalStorage(); // Save imported data
                     showDicePopup("Sheet data imported successfully!");
                 } catch (error) {
-                    console.error("Error importing sheet data:", error); // DEBUGGING
+                    console.error("Error importing sheet data:", error);
                     showDicePopup(`Error importing file: ${error.message}. See console.`);
                 } finally {
-                     event.target.value = null; // Reset file input to allow importing the same file again
+                     event.target.value = null;
                 }
             };
             reader.onerror = function(e) {
@@ -2079,13 +2055,11 @@
         }
 
        function populateSheetData(data) {
-            // console.log("Populating sheet data from saved/imported source..."); // DEBUGGING
-            // Helper to safely set value
+            // console.log("Populating sheet data...");
             const setVal = (id, value) => {
                 const el = document.getElementById(id);
                 if (el) {
                     el.value = value;
-                    // Mark HP inputs as loaded to prevent reset in updateHpDisplay
                     if (el.classList.contains('hp-current')) {
                         el.dataset.loaded = 'true';
                     }
@@ -2096,7 +2070,7 @@
                 const el = document.querySelector(selector);
                 if (el) {
                      el.value = value;
-                     autoExpandTextarea(el); // Auto expand after setting value
+                     autoExpandTextarea(el);
                 } else console.warn(`Element not found for setting textarea value: ${selector}`);
             };
             const setSelectVal = (id, value) => {
@@ -2109,9 +2083,9 @@
             if (data.header) {
                 setVal('char-name', data.header.name);
                 setSelectVal('char-class-select', data.header.class || 'Commoner');
-                handleClassChange(document.getElementById('char-class-select')); // Update placeholder based on class
+                // handleClassChange is implicitly called by the change event later, which triggers updateUnspentXpAndWarnings
                 setVal('char-profession', data.header.profession);
-                setVal('char-experience', data.header.xpEarned || '0');
+                setVal('char-experience', data.header.xp || ''); // Populate the XP input (formerly xpEarned)
                 setVal('char-goal', data.header.goal);
             }
 
@@ -2128,25 +2102,18 @@
                 setTextAreaVal('#char-flaws', data.description.flaws);
             }
 
-            // --- Populate Skills (Rebuild from saved data) ---
-            // Assumes setDefaultSheetState(false) has already cleared the containers
+            // --- Populate Skills ---
             if (data.skills) {
                 data.skills.core?.forEach(skillData => addEntry('skills-container', skillTemplate, skillData));
                 data.skills.knowledge?.forEach(skillData => addEntry('knowledge-container', knowledgeTemplate, skillData));
-                // --- UPDATED: Craft/Art uses consistent addEntry logic now ---
                 data.skills.craftArt?.forEach(skillData => addEntry('craft-art-container', craftArtTemplate, skillData));
             }
 
-            // --- Populate Combat Details (Skills, Weapons & Hit Locations) ---
+            // --- Populate Combat Details ---
             if (data.combat) {
-                // Combat Skills (Rebuild from saved data)
                 data.combat.skills?.forEach(skillData => addEntry('combat-skills-display', combatStatTemplate, skillData));
-
-                // Weapons (Rebuild from saved data)
                 data.combat.meleeWeapons?.forEach(weaponData => addEntry('melee-weapons-container', meleeWeaponTemplate, weaponData));
                 data.combat.rangedWeapons?.forEach(weaponData => addEntry('ranged-weapons-container', rangedWeaponTemplate, weaponData));
-
-                // Load Hit Location AP, HP, and Item
                 if (data.combat.hitLocations) {
                     Object.keys(data.combat.hitLocations).forEach(locId => {
                         const locData = data.combat.hitLocations[locId];
@@ -2154,7 +2121,7 @@
                             setVal(`${locId}-ap-current`, locData.apCurrent || '0');
                             setVal(`${locId}-ap-max`, locData.apMax || '0');
                             setVal(`${locId}-hp-current`, locData.hpCurrent || '0');
-                            setVal(`${locId}-item`, locData.item || ''); // Load item field
+                            setVal(`${locId}-item`, locData.item || '');
                         }
                     });
                 }
@@ -2162,44 +2129,37 @@
 
             // --- Populate Inventory ---
             if (data.inventory) {
-                // Backpack (Update existing inputs using their IDs)
                 data.inventory.backpack?.forEach((item, index) => {
-                    setVal(`backpack-slot-${index + 1}`, item || ''); // index is 0-based, IDs are 1-based
+                    setVal(`backpack-slot-${index + 1}`, item || '');
                 });
-                // Satchel & Coin (Update using IDs)
                 setTextAreaVal('#satchel-items', data.inventory.satchel);
                 setVal('coin', data.inventory.coin || '0');
-                // Dynamic Containers (Rebuild from saved data)
                 data.inventory.dynamic?.forEach(sectionData => addInventorySection(sectionData));
             }
 
-            // --- Populate Powers (Rebuild from saved data) ---
+            // --- Populate Powers ---
             data.powers?.forEach(powerData => addEntry('powers-container', powerTemplate, powerData));
 
             // --- Populate Notes ---
             setTextAreaVal('#notes-text', data.notes);
 
-            // --- Populate Section Customizations (Titles & Colors) ---
+            // --- Populate Section Customizations ---
             if (data.sectionCustomizations) {
                 Object.keys(data.sectionCustomizations).forEach(sectionId => {
                     const section = document.querySelector(`.styled-section[data-section-id="${sectionId}"]`);
                     const customData = data.sectionCustomizations[sectionId];
                     if (section && customData) {
                         const titleText = section.querySelector('.section-title-text');
-                        const titleInput = section.querySelector('.section-title-input'); // For setting value if needed
+                        const titleInput = section.querySelector('.section-title-input');
                         const header = section.querySelector('.section-header');
-                        const colorInput = section.querySelector('.color-picker-input'); // The actual <input type="color">
+                        const colorInput = section.querySelector('.color-picker-input');
 
-                        // Apply title customization
                         if (titleText && customData.title) {
                              titleText.textContent = customData.title;
-                             // Also update the hidden input's value for consistency if editing is toggled
                              if (titleInput) titleInput.value = customData.title;
                         }
-                        // Apply color customization
                         if (header && customData.color) {
-                             header.style.backgroundColor = customData.color; // Apply to header background
-                             // Also update the color picker's value
+                             header.style.backgroundColor = customData.color;
                              if (colorInput) colorInput.value = customData.color;
                         }
                     }
@@ -2209,7 +2169,7 @@
             // --- Clear loaded flags after population ---
             document.querySelectorAll('.hp-current').forEach(el => el.removeAttribute('data-loaded'));
 
-            // console.log("Finished populating sheet data."); // DEBUGGING
+            // console.log("Finished populating sheet data.");
         }
 
 
@@ -2217,7 +2177,7 @@
         function resetCharacterSheet() {
             const confirmed = confirm("Warning: Creating a new character will delete the current one from this browser. Export your character first if you want to save it permanently. Continue?");
             if (confirmed) {
-                localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear saved data
+                localStorage.removeItem(LOCAL_STORAGE_KEY);
                 setDefaultSheetState(true); // Reset to defaults and recalculate
                 showDicePopup("Character sheet reset.");
             }
@@ -2225,32 +2185,27 @@
 
         // --- Set Default Sheet State ---
         function setDefaultSheetState(updateCalculations = true) {
-            // console.log("Setting default sheet state..."); // DEBUGGING
+            // console.log("Setting default sheet state...");
 
             // --- Clear Dynamic Content Containers ---
             const containersToClear = [
-                'skills-container', 'knowledge-container', 'craft-art-container', // Skills
-                'combat-skills-display', 'melee-weapons-container', 'ranged-weapons-container', // Combat
-                'powers-container', // Powers
-                'dynamic-inventory-container', // Dynamic Inventory Sections
-                'dynamic-stats-container' // Placeholder if used
+                'skills-container', 'knowledge-container', 'craft-art-container',
+                'combat-skills-display', 'melee-weapons-container', 'ranged-weapons-container',
+                'powers-container', 'dynamic-inventory-container', 'dynamic-stats-container'
             ];
             containersToClear.forEach(id => {
                 const container = document.getElementById(id);
-                if (container) {
-                    container.innerHTML = ''; // Clear the container
-                } else {
-                    console.warn(`Container ID not found during reset: ${id}`);
-                }
+                if (container) container.innerHTML = '';
+                else console.warn(`Container ID not found during reset: ${id}`);
             });
 
             // --- Reset Header fields ---
-            const fieldsToReset = ['char-name', 'char-profession', 'char-goal'];
+            const fieldsToReset = ['char-name', 'char-profession', 'char-goal', 'char-experience']; // Added char-experience
             fieldsToReset.forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.value = '';
+                if (el) el.value = ''; // Reset XP field to blank
             });
-            const numsToReset = {'char-experience': '0', 'coin': '10'}; // Default values
+            const numsToReset = {'coin': '10'};
             Object.keys(numsToReset).forEach(id => {
                  const el = document.getElementById(id);
                  if (el) el.value = numsToReset[id];
@@ -2258,7 +2213,7 @@
             const classSelect = document.getElementById('char-class-select');
             if (classSelect) {
                  classSelect.value = 'Commoner'; // Default class
-                 handleClassChange(classSelect); // Update placeholder
+                 // handleClassChange will be called implicitly by updateUnspentXpAndWarnings later if needed
             }
 
             // --- Reset Characteristics ---
@@ -2274,29 +2229,25 @@
                  const el = document.querySelector(selector);
                  if (el) {
                      el.value = '';
-                     autoExpandTextarea(el); // Reset height
+                     autoExpandTextarea(el);
                  }
             });
 
-            // --- Reset Static Inventory (Backpack/Satchel) ---
+            // --- Reset Static Inventory ---
              for (let i = 1; i <= 5; i++) {
                 const slot = document.getElementById(`backpack-slot-${i}`);
                 if (slot) slot.value = '';
              }
-             // Satchel reset is handled above with other textareas
 
-
-            // --- Populate Default Skills (Core, Knowledge, Combat, Craft/Art) ---
-            if (updateCalculations) { // Only add defaults if we are doing a full reset (not just clearing for load)
+            // --- Populate Default Skills ---
+            if (updateCalculations) { // Only add defaults if doing a full reset
                 defaultSheetStructure.skills.core.forEach(skillDef => addEntry('skills-container', skillTemplate, { ...skillDef, rank: '0' }));
                 defaultSheetStructure.skills.knowledge.forEach(skillDef => addEntry('knowledge-container', knowledgeTemplate, { ...skillDef, rank: '0' }));
                 defaultSheetStructure.combat.skills.forEach(skillDef => addEntry('combat-skills-display', combatStatTemplate, { ...skillDef, rank: '0' }));
-                // --- UPDATED: Add default craft/art using consistent logic ---
                 defaultSheetStructure.skills.craftArt.forEach(skillDef => addEntry('craft-art-container', craftArtTemplate, skillDef));
             }
 
-
-            // --- Reset Hit Locations (AP/HP/Item) ---
+            // --- Reset Hit Locations ---
             document.querySelectorAll('.hit-location').forEach(loc => {
                 const locId = loc.dataset.loc;
                 if (locId) {
@@ -2309,31 +2260,26 @@
                     if(apCurrent) apCurrent.value = '0';
                     if(apMax) apMax.value = '0';
                     if(hpCurrent) hpCurrent.value = '0';
-                    if(itemInput) itemInput.value = ''; // Clear item input
+                    if(itemInput) itemInput.value = '';
                     if(hpMaxSpan) hpMaxSpan.textContent = '0';
                 }
             });
 
-            // --- Reset Section Customizations (Titles & Colors) ---
+            // --- Reset Section Customizations ---
             const defaultColor = getComputedStyle(document.documentElement).getPropertyValue('--default-section-bg').trim();
             document.querySelectorAll('.styled-section[data-section-id]').forEach(section => {
                  const titleText = section.querySelector('.section-title-text');
                  const titleInput = section.querySelector('.section-title-input');
                  const header = section.querySelector('.section-header');
                  const colorInput = section.querySelector('.color-picker-input');
-                 const defaultTitle = titleInput?.getAttribute('value'); // Get original title from HTML attribute
+                 const defaultTitle = titleInput?.getAttribute('value');
 
-                 // Reset title
                  if (titleText && defaultTitle) titleText.textContent = defaultTitle;
-                 if (titleInput && defaultTitle) titleInput.value = defaultTitle; // Reset hidden input too
-                 // Reset color
-                 if (header) header.style.backgroundColor = ''; // Remove inline style to revert to CSS default
-                 if (colorInput) { // Reset color picker value (convert default if needed)
-                    try {
-                        // Attempt direct assignment, works if defaultColor is hex/named
-                        colorInput.value = defaultColor;
-                    } catch (e) {
-                        // Fallback if defaultColor is rgb() or similar - set to black
+                 if (titleInput && defaultTitle) titleInput.value = defaultTitle;
+                 if (header) header.style.backgroundColor = '';
+                 if (colorInput) {
+                    try { colorInput.value = defaultColor; }
+                    catch (e) {
                         console.warn("Could not set default color picker value, using black fallback.", defaultColor, e);
                         colorInput.value = '#000000';
                     }
@@ -2342,20 +2288,19 @@
 
             // --- Recalculate derived values if requested ---
             if (updateCalculations) {
-                // console.log("Recalculating after setting default state..."); // DEBUGGING
-                updateHpDisplay(); // Recalculate HP based on default CON(0)
-                updatePercentages(); // Recalculate percentages based on default STR/DEX/CON(0) and default skill ranks(0)
-                updateXpSpent(); // Recalculate XP spent (should be 0)
-                 // console.log("Recalculations complete after default state."); // DEBUGGING
+                // console.log("Recalculating after setting default state...");
+                updateHpDisplay();
+                updatePercentages(); // This includes skills
+                updateUnspentXpAndWarnings(); // Crucial: Calculate XP based on defaults
+                // console.log("Recalculations complete after default state.");
             }
-             // No save needed here, as this is usually followed by loading or is a manual reset
-             // console.log("Finished setting default state."); // DEBUGGING
+             // console.log("Finished setting default state.");
         }
 
 
         // --- Initial Setup on Page Load ---
         document.addEventListener('DOMContentLoaded', () => {
-            // console.log("DOM Content Loaded. Initializing sheet..."); // DEBUGGING
+            // console.log("DOM Content Loaded. Initializing sheet...");
 
             // Attempt to load saved data. If successful, it populates and calculates.
             // If it fails or no data exists, it calls setDefaultSheetState(true) to set defaults and calculate.
@@ -2364,14 +2309,13 @@
             // Add event listener to the main container for inputs/changes to trigger debounced save
             const sheetContainer = document.getElementById('character-sheet-container');
             if (sheetContainer) {
-                // Use event delegation for better performance
                 sheetContainer.addEventListener('input', (event) => {
-                    // Trigger save for relevant input types
                     if (['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) {
-                        // console.log('Input event triggered save for:', event.target.id || event.target.placeholder); // DEBUGGING
+                        // console.log('Input/Change triggered save for:', event.target.id || event.target.placeholder || event.target.tagName);
+                        // Specific updates are handled by their own oninput/onchange handlers (like updatePercentages, updateUnspentXpAndWarnings, etc.)
+                        // We just need the debounced save here.
                         debouncedSave();
                     }
-                    // Auto-expand textareas on input
                     if (event.target.tagName === 'TEXTAREA' && event.target.classList.contains('auto-expand')) {
                         autoExpandTextarea(event.target);
                     }
@@ -2379,7 +2323,7 @@
                  // Listen for changes specifically on color pickers and select dropdowns
                  sheetContainer.addEventListener('change', (event) => {
                      if (event.target.type === 'color' || event.target.tagName === 'SELECT') {
-                        // console.log('Change event triggered save for:', event.target.id || event.target.tagName); // DEBUGGING
+                        // console.log('Change event triggered save for:', event.target.id || event.target.tagName);
                          debouncedSave();
                      }
                  });
@@ -2388,7 +2332,7 @@
             }
 
 
-            // Initialize auto-expand for any existing textareas (important after loading data)
+            // Initialize auto-expand for any existing textareas
             document.querySelectorAll('textarea.auto-expand').forEach(autoExpandTextarea);
 
              // Add click listener to dice popup to close it
@@ -2396,7 +2340,7 @@
                  dicePopup.addEventListener('click', closeDicePopup);
              }
 
-            // console.log("Sheet initialization complete."); // DEBUGGING
+            // console.log("Sheet initialization complete.");
         });
 
     </script>
